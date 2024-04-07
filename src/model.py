@@ -1,6 +1,5 @@
 import torch
 from torch import nn, optim
-import pytorch_lightning as pl
 from torch_sparse import SparseTensor
 import torch.nn.functional as F
 from torch.nn import ModuleList, Linear
@@ -113,7 +112,7 @@ class GNN(torch.nn.Module):
         super(GNN, self).__init__()
 
         self.alpha = nn.Parameter(torch.ones(1) * alpha, requires_grad=learn_alpha)
-        output_dim = hidden_dim if jumping_knowledge else num_classes
+        output_dim = hidden_dim if jumping_knowledge != False else num_classes
         if num_layers == 1:
             self.convs = ModuleList([get_conv(conv_type, num_features, output_dim, self.alpha)])
         else:
@@ -122,7 +121,7 @@ class GNN(torch.nn.Module):
                 self.convs.append(get_conv(conv_type, hidden_dim, hidden_dim, self.alpha))
             self.convs.append(get_conv(conv_type, hidden_dim, output_dim, self.alpha))
 
-        if jumping_knowledge is not None:
+        if jumping_knowledge != False:
             input_dim = hidden_dim * num_layers if jumping_knowledge == "cat" else hidden_dim
             self.lin = Linear(input_dim, num_classes)
             self.jump = JumpingKnowledge(mode=jumping_knowledge, channels=hidden_dim, num_layers=num_layers)
@@ -143,56 +142,11 @@ class GNN(torch.nn.Module):
                     x = F.normalize(x, p=2, dim=1)
             xs += [x]
 
-        if self.jumping_knowledge is not None:
+        if self.jumping_knowledge != False:
             x = self.jump(xs)
             x = self.lin(x)
 
         return torch.nn.functional.log_softmax(x, dim=1)
-
-
-class LightingFullBatchModelWrapper(pl.LightningModule):
-    def __init__(self, model, lr, weight_decay, train_mask, val_mask, test_mask, evaluator=None):
-        super().__init__()
-        self.model = model
-        self.lr = lr
-        self.weight_decay = weight_decay
-        self.evaluator = evaluator
-        self.train_mask, self.val_mask, self.test_mask = train_mask, val_mask, test_mask
-
-    def training_step(self, batch, batch_idx):
-        x, y, edge_index = batch.x, batch.y.long(), batch.edge_index
-        out = self.model(x, edge_index)
-
-        loss = nn.functional.nll_loss(out[self.train_mask], y[self.train_mask].squeeze())
-        self.log("train_loss", loss)
-
-        y_pred = out.max(1)[1]
-        train_acc = self.evaluate(y_pred=y_pred[self.train_mask], y_true=y[self.train_mask])
-        self.log("train_acc", train_acc)
-        val_acc = self.evaluate(y_pred=y_pred[self.val_mask], y_true=y[self.val_mask])
-        self.log("val_acc", val_acc)
-
-        return loss
-
-    def evaluate(self, y_pred, y_true):
-        if self.evaluator:
-            acc = self.evaluator.eval({"y_true": y_true, "y_pred": y_pred.unsqueeze(1)})["acc"]
-        else:
-            acc = y_pred.eq(y_true.squeeze()).sum().item() / y_pred.shape[0]
-
-        return acc
-
-    def test_step(self, batch, batch_idx):
-        x, y, edge_index = batch.x, batch.y.long(), batch.edge_index
-        out = self.model(x, edge_index)
-
-        y_pred = out.max(1)[1]
-        val_acc = self.evaluate(y_pred=y_pred[self.test_mask], y_true=y[self.test_mask])
-        self.log("test_acc", val_acc)
-
-    def configure_optimizers(self):
-        optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        return optimizer
 
 
 def get_model(args):

@@ -11,13 +11,13 @@ import networkx as nx
 import numpy as np
 
 from utils import utils
-from dataset import datasets
+import dataset 
 
 import linecache
 
 def prepare_instance(G):
-    datasets.set_features(G)
-    datasets.set_labels(G)
+    dataset.set_features(G)
+    dataset.set_labels(G)
     return G
 
 def get_solved_instances_2D(n_nodes, n_instances):
