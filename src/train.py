@@ -5,6 +5,7 @@ import datetime
 import uuid
 import json
 import pathlib
+import os 
 
 import torch 
 from torch_geometric.loader import DataLoader
@@ -127,8 +128,15 @@ def run(args):
             criterion = torch.nn.MSELoss()
 
         timestamp = datetime.datetime.now().strftime('%b%d_%H-%M-%S')
-        run_name = f'{timestamp}_{uuid.uuid4().hex}'
-        log_dir = args.tb_dir / run_name
+        log_dir = ""
+        for i in range(1000):
+            run_name = f'version{i}'
+            log_dir = args.tb_dir / run_name
+            if os.path.exists(log_dir):
+                continue
+            else:
+                os.mkdir(log_dir)
+                break
         writer = SummaryWriter(log_dir)
 
         # early stopping

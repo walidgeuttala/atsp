@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
+import tqdm.auto as tqdm
 import argparse
 import datetime
 import json
@@ -13,6 +11,12 @@ import numpy as np
 import pandas as pd
 import torch
 
+from model import get_model
+from train import train_parse_args, test
+import algorithms
+import utils
+from dataset import TSPDataset
+
 #import tqdm.auto as tqdm
 def tour_cost2(tour, weight):
     c = 0
@@ -20,9 +24,6 @@ def tour_cost2(tour, weight):
         c += weight[e]
     return c
 
-import gnngls
-from gnngls import algorithms, models, datasets
-from atps_to_tsp import TSPExact
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test model')
     parser.add_argument('data_path', type=pathlib.Path)
@@ -33,43 +34,35 @@ if __name__ == '__main__':
     parser.add_argument('--time_limit', type=float, default=10.)
     parser.add_argument('--perturbation_moves', type=int, default=20)
     parser.add_argument('--use_gpu', action='store_true')
-    
-    
+    parser.add_argument('--num_features', type=int, default=1)
+    parser.add_argument('--num_classes', type=int, default=1)
+    parser.add_argument('--save_prediction', type=bool, default=True)
     args = parser.parse_args()
     args.output_path.mkdir(parents=True, exist_ok=True)
-    params = json.load(open(args.model_path.parent / 'params.json'))
-    if 'efeat_drop_idx' in params:
-        test_set = datasets.TSPDataset(args.data_path, feat_drop_idx=params['efeat_drop_idx'])
-    else:
-        test_set = datasets.TSPDataset(args.data_path)
+
+    params_train = json.load(open(args.model_path.parent / 'params.json'))
+    args_train = train_parse_args()
+    for key, value in params_train.items():
+        setattr(args_train, key, value)
+
+    test_data = TSPDataset(args.data_path)
 
     if 'regret_pred' in args.guides:
         device = torch.device('cuda' if args.use_gpu and torch.cuda.is_available() else 'cpu')
-        print('device =', device)
-
-        _, feat_dim = test_set[0].ndata['features'].shape
-
-        model = models.EdgePropertyPredictionModel(
-            feat_dim,
-            params['embed_dim'],
-            1,
-            params['n_layers'],
-            n_heads=params['n_heads']
-        ).to(device)
-
+        model = get_model(args).to(device)
         checkpoint = torch.load(args.model_path, map_location=device)
-
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
-    #pbar = tqdm.tqdm(test_set.instances)
+
+    pbar = tqdm.tqdm(test_data.instances)
     gaps = []
     gaps2 = []
     search_progress = []
     cnt = 0
-    for instance in test_set.instances:
-        G = nx.read_gpickle(test_set.root_dir / instance)
+    for instance in pbar:
+        G = nx.read_gpickle(test_data.root_dir / instance)
         num_nodes = G.number_of_nodes()
-        opt_cost = gnngls.optimal_cost(G, weight='weight')
+        opt_cost = utils.optimal_cost(G, weight='weight')
 
         t = time.time()
         search_progress.append({
@@ -79,51 +72,19 @@ if __name__ == '__main__':
         })
 
         if 'regret_pred' in args.guides:
-            H = test_set.get_scaled_features(G).to(device)
+            H = test_data.get_scaled_features(G).to(device)
 
-            x = H.ndata['features']
-            y = H.ndata['regret']
             with torch.no_grad():
-                y_pred = model(H, x)
-            regret_pred = test_set.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
-            regret      = np.abs(test_set.scalers['regret'].inverse_transform(y.cpu().numpy()))
+                y_pred = model(H.x, H.edge_index)
+            regret_pred = test_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
             
-            es = H.ndata['e'].cpu().numpy()
-            for e, regret_pred_i in zip(es, regret_pred):
-                G.edges[e]['regret_pred'] = np.maximum(regret_pred_i.item(), 0)
-
-            for e, regret_i in zip(es, regret):
-                G.edges[e]['regret'] = np.maximum(regret_i.item(), 0)
+            for idx in range(num_nodes*2):
+                G.edges[test_data.mapping[idx]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
 
             init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
             
-        else:
-            init_tour = algorithms.nearest_neighbor(G, 0, weight='weight')
 
-        # g = nx.DiGraph()
-        # original_wieghts, _ = nx.attr_matrix(G, 'weight')
-        # original_wieghts = original_wieghts[64:, :64]
-        # regret_pred, _ = nx.attr_matrix(G, 'regret_pred')
-        # regret_pred = regret_pred[64:, :64]
-        # g = nx.from_numpy_matrix(original_wieghts)
-        # orignal_tour = [x for idx, x in enumerate(init_tour) if idx % 2 == 0]
-        # Optionally, set the edge weights
-        for i in range(64):
-            for j in range(i+1,64):
-                if i != j:
-                    G.add_edge(i, j, weight=float(1e6), regret_pred=float(100), regret=float(100))
-        for i in range(64,128):
-            for j in range(64+i+1,128):
-                if i != j:
-                    G.add_edge(i, j, weight=float(1e6), regret_pred=float(100), regret=float(100))
-        # for i, j in g.edges():
-        #     g.edges[i, j]['weight'] = original_wieghts[i, j]
-        #     g.edges[i, j]['regret_pred'] = regret_pred[i, j]
-        #     if i == j:
-        #         g.edges[i, j]['weight'] = float(1e6)
-        #         g.edges[i, j]['regret_pred'] = float(1e6)
-        value = 1e6 * num_nodes / 2
-        init_cost = gnngls.tour_cost(G, init_tour)
+        init_cost = utils.tour_cost(G, init_tour)
         best_tour, best_cost, search_progress_i, cnt_ans = algorithms.guided_local_search(G, init_tour, init_cost,
                                                                                  t + args.time_limit, weight='weight',
                                                                                  guides=args.guides,
@@ -134,14 +95,6 @@ if __name__ == '__main__':
                 'instance': instance,
                 'opt_cost': opt_cost
             })
-        for i in range(64):
-            for j in range(i+1, 64):
-                if i != j:
-                    G.remove_edge(i, j)
-        for i in range(64,128):
-            for j in range(64+i+1,128):
-                if i != j:
-                    G.remove_edge(i, j)
         search_progress.append(row)
         # print('tour : ',best_tour)
         # edge_weight, _ = nx.attr_matrix(G, 'weight')

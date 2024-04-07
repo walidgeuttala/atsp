@@ -99,13 +99,9 @@ class TSPDataset(torch.utils.data.Dataset):
         # Step 3: Extract edge features and assign them to the PyG Data object
         weight = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]]['weight'] for u in range(self.G.num_nodes)], dtype=torch.float32)
         regret = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]]['regret'] for u in range(self.G.num_nodes)], dtype=torch.float32)
-        original_weight = weight.clone()
-        original_regret = regret.clone()   
              
         H = self.G.clone()
         H.x = torch.tensor(self.scalers['weight'].transform(weight.view(-1, 1)), dtype=torch.float32)
         H.y = torch.tensor(self.scalers['regret'].transform(regret.view(-1, 1)), dtype=torch.float32)
-        H.original_weight = original_weight
-        H.original_regret = original_regret
 
         return H

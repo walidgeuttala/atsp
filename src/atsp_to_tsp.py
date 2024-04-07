@@ -5,13 +5,14 @@ import networkx as nx
 import pathlib
 
 def tsp_to_atsp(args):
-    instances = list(args.input_dir.glob('*.pkl'))
-    os.mkdir(args.output_dir)
+    instances = list(args.input_dir.glob('instance*.pkl'))
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
     for idx, instance in enumerate(instances):
+        print(idx, end= " ")
         output_name = args.output_dir / f'instance{idx}.pkl'
-        with open(args.input_dir / instance, 'rb') as file:
+        with open(instance, 'rb') as file:
             G1 = pickle.load(file)
-        
         num_nodes = G1.number_of_nodes() // 2
         G2 = nx.DiGraph()
         G2.add_nodes_from(range(num_nodes))
@@ -22,18 +23,23 @@ def tsp_to_atsp(args):
         # Get the regret
         regret, _ = nx.attr_matrix(G1, 'regret')
         regret = regret[64:, :64]
+        # Get the solution
+        in_solution, _ = nx.attr_matrix(G1, 'in_solution')
+        in_solution = in_solution[64:, :64]
         for u, v in G2.edges():
             G2[u][v]['weight'] = weight[u, v]
             G2[u][v]['regret'] = regret[u, v]
+            G2[u][v]['in_solution'] = in_solution[u, v]
         with open(output_name, 'wb') as file:
             pickle.dump(G2, file)
 
 def atsp_to_tsp(args):
     instances = list(args.input_dir.glob('*.pkl'))
-    os.mkdir(args.output_dir)
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
     for idx, instance in enumerate(instances):
         output_name = args.output_dir / f'instance{idx}.pkl'
-        with open(args.input_dir / instance, 'rb') as file:
+        with open(instance, 'rb') as file:
             G1 = pickle.load(file)
         
         num_nodes = G1.number_of_nodes()
@@ -44,7 +50,8 @@ def atsp_to_tsp(args):
         weight, _ = nx.attr_matrix(G1, 'weight')
         # Get the regret
         regret, _ = nx.attr_matrix(G1, 'regret')
-
+        # Get the regret
+        in_solution, _ = nx.attr_matrix(G1, 'in_solution')
         # [INF][A.T]
         # [A  ][INF]
         for u, v in G2.edges():
@@ -93,16 +100,14 @@ def atsp_to_tsp(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a dataset.')
-    parser.add_argument('atsp_to_tsp', type=str)
+    parser.add_argument('atsp_to_tsp', type=bool)
     parser.add_argument('input_dir', type=pathlib.Path)
     parser.add_argument('output_dir', type=pathlib.Path)
-    parser.add_argument('input_file', type=str)
-    parser.add_argument('output_dir', type=pathlib.Path)
-    parser.add_argument('INF', type=float, default=1e6)
-    parser.add_argument('DIAG', type=float, default=-1e6)
-    # if arg atsp is True, we use this paramters for the transformation
+    parser.add_argument('INF', type=float)
+    parser.add_argument('DIAG', type=float)
 
     args = parser.parse_args()
+    args.atsp_to_tsp = False
     if args.atsp_to_tsp:
         atsp_to_tsp(args)
     else:
