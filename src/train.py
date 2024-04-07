@@ -86,15 +86,17 @@ def train_parse_args():
     parser.add_argument('--num_features', type=int, default=1)
     parser.add_argument('--num_classes', type=int, default=1)
     parser.add_argument('--target', type=str, default='regret')
-    parser.add_argument('--batch_size', type=int, default=50, help='Batch size')
 
     ### Training Args
-    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.001)
-    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.0001)
+    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.01)
+    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.001)
     parser.add_argument('--n_epochs', type=int, default=100, help='Number of epochs')
     parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
     parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
     parser.add_argument('--checkpoint_freq', type=int, default=20, help='Checkpoint frequency')
+    parser.add_argument('--min_delta', type=float, default=1e-4, help='Early stopping min delta')
+    parser.add_argument('--batch_size', type=int, default=50, help='Batch size')
+
 
     ### System Args
     parser.add_argument('--device', type=str, default='cuda')
