@@ -55,10 +55,9 @@ if __name__ == '__main__':
         model.eval()
 
     pbar = tqdm.tqdm(test_data.instances)
-    gaps = []
-    gaps2 = []
+    init_gaps = []
+    final_gaps = []
     search_progress = []
-    cnt = 0
     for instance in pbar:
         G = nx.read_gpickle(test_data.root_dir / instance)
         num_nodes = G.number_of_nodes()
@@ -101,9 +100,7 @@ if __name__ == '__main__':
         # print('orignal cost: ', tour_cost2(best_tour, edge_weight)+value)
         # print('init_tour cost: ', tour_cost2(init_tour, edge_weight)+value)
         # print(best_cost)
-        opt_cost  += value
-        init_cost += value
-        best_cost += value
+     
         if init_cost != best_cost:
             print('opt : ',opt_cost)
             print('init : ',init_cost)
@@ -143,16 +140,14 @@ if __name__ == '__main__':
             f.write(f"num_iterations: {cnt_ans}\n")
             f.write(f"init_cost: {init_cost}\n")
             f.write(f"best_cost: {best_cost}\n")
-       
-        gap = (best_cost / opt_cost - 1) * 100
-        gap2 = (init_cost / opt_cost - 1) * 100
-        gaps.append(gap)
-        gaps2.append(gap2)
-        print('Avg Gap init: {:.4f}'.format(np.mean(gaps2)))
-        print('Avg Gap best: {:.4f}'.format(np.mean(gaps)))
         
-        cnt += 1
+        init_gap = (init_cost / opt_cost - 1) * 100
+        final_gap = (best_cost / opt_cost - 1) * 100
         
+        init_gaps.append(init_gap)
+        final_gaps.append(final_gaps)
+        print('Avg Gap init: {:.4f}'.format(np.mean(init_gaps)))
+        print('Avg Gap best: {:.4f}'.format(np.mean(final_gaps)))        
         
         
 

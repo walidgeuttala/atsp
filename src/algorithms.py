@@ -138,7 +138,7 @@ def local_search(init_tour, init_cost, D, first_improvement=False):
 
 
 def guided_local_search(G, init_tour, init_cost, t_lim, weight='weight', guides=['weight'], perturbation_moves=30,
-                        first_improvement=False, value=0):
+                        first_improvement=False):
     k = 0.1 * init_cost / len(G.nodes)
     nx.set_edge_attributes(G, 0, 'penalty')
 
@@ -185,7 +185,7 @@ def guided_local_search(G, init_tour, init_cost, t_lim, weight='weight', guides=
 
                             search_progress.append({
                                 'time': time.time(),
-                                'cost': cur_cost + value
+                                'cost': cur_cost
                             })
                         if moved == False:
                             cnt += 1
@@ -194,7 +194,7 @@ def guided_local_search(G, init_tour, init_cost, t_lim, weight='weight', guides=
                                 cnt = 0
                                 search_progress.append({
                                 'time': time.time(),
-                                'cost': cur_cost + value
+                                'cost': cur_cost
                                 })
                         moves += moved
                         cnt_ans += 1
