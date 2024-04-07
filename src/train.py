@@ -60,7 +60,7 @@ def save(model, optimizer, epoch, train_loss, val_loss, save_path):
         'val_loss': val_loss
     }, save_path)
 
-def train_parse_args(values):
+def train_parse_args():
     parser = argparse.ArgumentParser("ATSP Graph Neural Network")
 
     ### Dataset Args
@@ -76,23 +76,22 @@ def train_parse_args(values):
     ### Model Args
     parser.add_argument("--model", type=str, help="Model type", default="gnn")
     parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
-    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=3)
+    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=2)
     parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.0)
     parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
     parser.add_argument("--learn_alpha", action="store_true")
     parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="dir-gcn")
     parser.add_argument("--normalize", action="store_true")
-    parser.add_argument("--jk", type=str, choices=["max", "cat", None], default="max")
+    parser.add_argument("--jk", type=str, choices=["max", "cat", None], default="cat")
     parser.add_argument('--num_features', type=int, default=1)
     parser.add_argument('--num_classes', type=int, default=1)
     parser.add_argument('--target', type=str, default='regret')
     parser.add_argument('--batch_size', type=int, default=50, help='Batch size')
-    parser.add_argument('--n_epochs', type=int, default=1, help='Number of epochs')
 
     ### Training Args
     parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.001)
-    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.0)
-    parser.add_argument("--num_epochs", type=int, help="Max number of epochs", default=100)
+    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.0001)
+    parser.add_argument('--n_epochs', type=int, default=100, help='Number of epochs')
     parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
     parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
     parser.add_argument('--checkpoint_freq', type=int, default=20, help='Checkpoint frequency')
@@ -102,7 +101,7 @@ def train_parse_args(values):
     parser.add_argument("--num_workers", type=int, help="Num of workers for the dataloader", default=16)
 
     
-    args = parser.parse_args(values)
+    args = parser.parse_args()
 
 
     return args

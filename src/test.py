@@ -13,7 +13,6 @@ import pandas as pd
 import torch
 
 from model import get_model
-from train import train_parse_args, test
 import algorithms
 import utils
 from dataset import TSPDataset
@@ -24,6 +23,52 @@ def tour_cost2(tour, weight):
     for e in zip(tour[:-1], tour[1:]):
         c += weight[e]
     return c
+
+def train_parse_args(values):
+    parser = argparse.ArgumentParser("ATSP Graph Neural Network")
+
+    ### Dataset Args
+    parser.add_argument("--dataset", type=str, help="Name of dataset", default="atsp")
+    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../atsp_n5900")
+    parser.add_argument("--tb_dir", type=pathlib.Path, help="Directory to save checkpoints", default="../../checkpoint")
+
+    ### Preprocessing Args
+    parser.add_argument("--undirected", action="store_true", help="Whether to use undirected version of graph")
+    parser.add_argument("--self_loops", action="store_true", help="Whether to add self-loops to the graph")
+    # parser.add_argument("--transpose", action="store_true", help="Whether to use transpose of the graph")
+
+    ### Model Args
+    parser.add_argument("--model", type=str, help="Model type", default="gnn")
+    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
+    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=2)
+    parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.0)
+    parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
+    parser.add_argument("--learn_alpha", action="store_true")
+    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="dir-gcn")
+    parser.add_argument("--normalize", action="store_true")
+    parser.add_argument("--jk", type=str, choices=["max", "cat", None], default="cat")
+    parser.add_argument('--num_features', type=int, default=1)
+    parser.add_argument('--num_classes', type=int, default=1)
+    parser.add_argument('--target', type=str, default='regret')
+    parser.add_argument('--batch_size', type=int, default=50, help='Batch size')
+
+    ### Training Args
+    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.001)
+    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.0001)
+    parser.add_argument('--n_epochs', type=int, default=100, help='Number of epochs')
+    parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
+    parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
+    parser.add_argument('--checkpoint_freq', type=int, default=20, help='Checkpoint frequency')
+
+    ### System Args
+    parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument("--num_workers", type=int, help="Num of workers for the dataloader", default=16)
+
+    
+    args = parser.parse_args(values)
+
+
+    return args
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test model')
