@@ -3,8 +3,7 @@ import time
 import networkx as nx
 import numpy as np
 
-from utils import operators
-from utils.utils import tour_cost
+from utils import operators, tour_cost, tour_cost2
 
 def nearest_neighbor(G, depot, weight='weight'):
     tour = [depot]
@@ -124,9 +123,12 @@ def local_search(init_tour, init_cost, D, first_improvement=False):
         improved = False
         for operator in [operators.two_opt_a2a, operators.relocate_a2a]:
             delta, new_tour = operator(cur_tour, D, first_improvement)
+            delta = tour_cost2(new_tour, D) - cur_cost
             if delta < 0:
                 improved = True
                 cur_cost += delta
+                if cur_cost != tour_cost2(new_tour, D):
+                    print('No')
                 cur_tour = new_tour
                 search_progress.append({
                     'time': time.time(),
@@ -148,7 +150,6 @@ def guided_local_search(G, init_tour, init_cost, t_lim, weight='weight', guides=
     cnt_ans += cnt
     best_tour, best_cost = cur_tour, cur_cost
     iter_i = 0
-    print(cur_tour)
     while time.time() < t_lim:
         guide = guides[iter_i % len(guides)]  # option change guide ever iteration (as in KGLS)
 

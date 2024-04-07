@@ -60,7 +60,7 @@ def save(model, optimizer, epoch, train_loss, val_loss, save_path):
         'val_loss': val_loss
     }, save_path)
 
-def train_parse_args():
+def train_parse_args(values):
     parser = argparse.ArgumentParser("ATSP Graph Neural Network")
 
     ### Dataset Args
@@ -102,7 +102,7 @@ def train_parse_args():
     parser.add_argument("--num_workers", type=int, help="Num of workers for the dataloader", default=16)
 
     
-    args = parser.parse_args()
+    args = parser.parse_args(values)
 
 
     return args

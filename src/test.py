@@ -5,6 +5,7 @@ import json
 import pathlib
 import time
 import uuid
+import pickle 
 
 import networkx as nx
 import numpy as np
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     args.output_path.mkdir(parents=True, exist_ok=True)
 
     params_train = json.load(open(args.model_path.parent / 'params.json'))
-    args_train = train_parse_args()
+    args_train = train_parse_args([])
     for key, value in params_train.items():
         setattr(args_train, key, value)
 
@@ -49,7 +50,7 @@ if __name__ == '__main__':
 
     if 'regret_pred' in args.guides:
         device = torch.device('cuda' if args.use_gpu and torch.cuda.is_available() else 'cpu')
-        model = get_model(args).to(device)
+        model = get_model(args_train).to(device)
         checkpoint = torch.load(args.model_path, map_location=device)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
@@ -58,8 +59,10 @@ if __name__ == '__main__':
     init_gaps = []
     final_gaps = []
     search_progress = []
+    cnt = 0
     for instance in pbar:
-        G = nx.read_gpickle(test_data.root_dir / instance)
+        with open(test_data.root_dir / instance, 'rb') as file:
+            G = pickle.load(file)
         num_nodes = G.number_of_nodes()
         opt_cost = utils.optimal_cost(G, weight='weight')
 
@@ -72,28 +75,28 @@ if __name__ == '__main__':
 
         if 'regret_pred' in args.guides:
             H = test_data.get_scaled_features(G).to(device)
-
+            
             with torch.no_grad():
                 y_pred = model(H.x, H.edge_index)
             regret_pred = test_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
+            for idx in range(len(G.edges())):
+                G[test_data.mapping[idx][0]][test_data.mapping[idx][1]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
             
-            for idx in range(num_nodes*2):
-                G.edges[test_data.mapping[idx]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
-
             init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
             
-
+        
         init_cost = utils.tour_cost(G, init_tour)
         best_tour, best_cost, search_progress_i, cnt_ans = algorithms.guided_local_search(G, init_tour, init_cost,
                                                                                  t + args.time_limit, weight='weight',
                                                                                  guides=args.guides,
                                                                                  perturbation_moves=args.perturbation_moves,
-                                                                                 first_improvement=False, value=0)
+                                                                                 first_improvement=False)
         for row in search_progress_i:
             row.update({
                 'instance': instance,
                 'opt_cost': opt_cost
             })
+        
         search_progress.append(row)
         # print('tour : ',best_tour)
         # edge_weight, _ = nx.attr_matrix(G, 'weight')
@@ -141,14 +144,18 @@ if __name__ == '__main__':
             f.write(f"init_cost: {init_cost}\n")
             f.write(f"best_cost: {best_cost}\n")
         
+        cnt += 1
         init_gap = (init_cost / opt_cost - 1) * 100
         final_gap = (best_cost / opt_cost - 1) * 100
         
         init_gaps.append(init_gap)
-        final_gaps.append(final_gaps)
+        final_gaps.append(final_gap)
         print('Avg Gap init: {:.4f}'.format(np.mean(init_gaps)))
         print('Avg Gap best: {:.4f}'.format(np.mean(final_gaps)))        
-        
+        pbar.set_postfix({
+                'Avg Gap init:': '{:.4f}'.format(np.mean(init_gaps)),
+                'Avg Gap best:': '{:.4f}'.format(np.mean(final_gaps)),
+            })
         
 
     search_progress_df = pd.DataFrame.from_records(search_progress)
