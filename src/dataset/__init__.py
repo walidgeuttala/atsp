@@ -95,13 +95,20 @@ class TSPDataset(torch.utils.data.Dataset):
         return H
 
     def get_scaled_features(self, G):
+        attribute_name = 'features'
+        # if 'features' in G[0][1]:
+        #     attribute_name = 'features'
+        # elif 'weight' in G[0][1]:
+        #     attribute_name = 'weight'
+        # else:
+        #     raise ValueError(f"Edge attribute 'features' or 'weight' not found in the graph. it must be one of {G[0][1]}")
         
         # Step 3: Extract edge features and assign them to the PyG Data object
-        weight = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]]['weight'] for u in range(self.G.num_nodes)], dtype=torch.float32)
+        weight = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]][attribute_name].item() for u in range(self.G.num_nodes)], dtype=torch.float32)
         regret = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]]['regret'] for u in range(self.G.num_nodes)], dtype=torch.float32)
              
         H = self.G.clone()
-        H.x = torch.tensor(self.scalers['weight'].transform(weight.view(-1, 1)), dtype=torch.float32)
+        H.x = torch.tensor(self.scalers[attribute_name].transform(weight.view(-1, 1)), dtype=torch.float32)
         H.y = torch.tensor(self.scalers['regret'].transform(regret.view(-1, 1)), dtype=torch.float32)
 
         return H

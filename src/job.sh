@@ -13,4 +13,4 @@
 
 
 #python train.py
-python test.py ../../atsp_n5900/test.txt ../../checkpoint/version3/checkpoint_best_val.pt ../../checkpoint/version3/run_results regret_pred ../../checkpoint/version3/test_results --use_gpu
+python test.py ../../cleaned_data_n5900/test.txt ../../checkpoint/version0/checkpoint_best_val.pt ../../checkpoint/version0/run_results regret_pred ../../checkpoint/version0/test_results --use_gpu

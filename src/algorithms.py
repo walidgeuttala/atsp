@@ -162,12 +162,12 @@ def guided_local_search(G, init_tour, init_cost, t_lim, weight='weight', guides=
             max_util_e = None
             for e in zip(cur_tour[:-1], cur_tour[1:]):
                 
-                util = G.edges[e][guide] / (1 + G.edges[e]['penalty'])
+                util = G[e[0]][e[1]][guide] / (1 + G[e[0]][e[1]]['penalty'])
                 
                 if util > max_util or max_util_e is None:
                     max_util = util
                     max_util_e = e
-            G.edges[max_util_e]['penalty'] += 1.
+            G[max_util_e[0]][max_util_e[1]]['penalty'] += 1.
             edge_penalties, _ = nx.attr_matrix(G, 'penalty')
             edge_weight_guided = edge_weight + k * edge_penalties
             # apply operator to edge

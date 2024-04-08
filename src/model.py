@@ -19,7 +19,7 @@ def get_conv(conv_type, input_dim, output_dim, alpha):
     elif conv_type == "sage":
         return SAGEConv(input_dim, output_dim)
     elif conv_type == "gat":
-        return GATConv(input_dim, output_dim, heads=1)
+        return GATConv(input_dim, output_dim, heads=8)
     elif conv_type == "dir-gcn":
         return DirGCNConv(input_dim, output_dim, alpha)
     elif conv_type == "dir-sage":
@@ -28,6 +28,71 @@ def get_conv(conv_type, input_dim, output_dim, alpha):
         return DirGATConv(input_dim, output_dim, heads=1, alpha=alpha)
     else:
         raise ValueError(f"Convolution type {conv_type} not supported")
+
+class SkipConnection(nn.Module):
+    def __init__(self, module):
+        super(SkipConnection, self).__init__()
+        self.module = module
+
+    def forward(self, x, edge_index=None):
+        if edge_index is not None:
+            y = self.module(x, edge_index).view(-1, x.size(-1))
+        else:
+            y = self.module(x)
+        return x + y
+
+
+class AttentionLayer(nn.Module):
+    def __init__(self, embed_dim, n_heads, hidden_dim):
+        super(AttentionLayer, self).__init__()
+
+        self.message_passing = GATConv(embed_dim, embed_dim // n_heads, heads=n_heads)
+        if embed_dim // n_heads * n_heads != embed_dim:
+            print('wrong')
+        
+        self.feed_forward = nn.Sequential(
+            nn.BatchNorm1d(embed_dim),
+            SkipConnection(
+                nn.Sequential(
+                    nn.Linear(embed_dim, hidden_dim),
+                    nn.ReLU(),
+                    nn.Linear(hidden_dim, embed_dim)
+                ),
+            ),
+            nn.BatchNorm1d(embed_dim),
+        )
+
+    def forward(self, x, edge_index):
+        h = self.message_passing(x, edge_index)
+        h = self.feed_forward(h)
+        return h
+
+class EdgePropertyPredictionModel(nn.Module):
+    def __init__(
+            self,
+            num_features,
+            hidden_dim,
+            num_classes,
+            num_layers,
+            n_heads=8,
+    ):
+        super(EdgePropertyPredictionModel, self).__init__()
+
+        self.hidden_dim = hidden_dim
+
+        self.embed_layer = Linear(num_features, hidden_dim)
+        #attention_layers = [AttentionLayer(hidden_dim, n_heads, 512) for _ in range(num_layers)]
+
+        self.message_passing_layers = AttentionLayer(hidden_dim, n_heads, 512)
+
+        self.decision_layer = Linear(hidden_dim, num_classes)
+
+    def forward(self, x, edge_index):
+        h = self.embed_layer(x)
+        #for l in self.message_passing_layers:
+        h = self.message_passing_layers(h, edge_index)
+        h = self.decision_layer(h)
+        return h
 
 
 class DirGCNConv(torch.nn.Module):
@@ -148,17 +213,25 @@ class GNN(torch.nn.Module):
 
         return torch.nn.functional.log_softmax(x, dim=1)
 
-
 def get_model(args):
-    return GNN(
-        num_features=args.num_features,
-        hidden_dim=args.hidden_dim,
-        num_layers=args.num_layers,
-        num_classes=args.num_classes,
-        dropout=args.dropout,
-        conv_type=args.conv_type,
-        jumping_knowledge=args.jk,
-        normalize=args.normalize,
-        alpha=args.alpha,
-        learn_alpha=args.learn_alpha,
-    )
+    if args.gat_model:
+        return EdgePropertyPredictionModel(
+            num_features=args.num_features,
+            hidden_dim=args.hidden_dim,
+            num_layers=args.num_layers,
+            num_classes=args.num_classes,
+            n_heads = 8,
+        )
+    else:
+        return GNN(
+            num_features=args.num_features,
+            hidden_dim=args.hidden_dim,
+            num_layers=args.num_layers,
+            num_classes=args.num_classes,
+            dropout=args.dropout,
+            conv_type=args.conv_type,
+            jumping_knowledge=args.jk,
+            normalize=args.normalize,
+            alpha=args.alpha,
+            learn_alpha=args.learn_alpha,
+        )
