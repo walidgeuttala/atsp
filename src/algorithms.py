@@ -128,7 +128,7 @@ def local_search(init_tour, init_cost, D, first_improvement=False):
                 improved = True
                 cur_cost += delta
                 if cur_cost != tour_cost2(new_tour, D):
-                    print('No')
+                    print('Wrong cost Try again')
                 cur_tour = new_tour
                 search_progress.append({
                     'time': time.time(),
@@ -161,7 +161,6 @@ def guided_local_search(G, init_tour, init_cost, t_lim, weight='weight', guides=
             max_util = 0
             max_util_e = None
             for e in zip(cur_tour[:-1], cur_tour[1:]):
-                
                 util = G[e[0]][e[1]][guide] / (1 + G[e[0]][e[1]]['penalty'])
                 
                 if util > max_util or max_util_e is None:

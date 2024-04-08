@@ -83,6 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_features', type=int, default=1)
     parser.add_argument('--num_classes', type=int, default=1)
     parser.add_argument('--save_prediction', type=bool, default=True)
+    parser.add_argument('--tsp_as_atsp', type=bool, default=False)
     args = parser.parse_args()
     args.output_path.mkdir(parents=True, exist_ok=True)
 
@@ -129,7 +130,17 @@ if __name__ == '__main__':
             
             init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
             
-        
+        edge_weight, _ = nx.attr_matrix(G, 'weight')
+        if args.tsp_as_atsp:
+            for i in range(64):
+                for j in range(i+1,64):
+                    if i != j:
+                        G.add_edge(i, j, weight=float(1e6), regret_pred=float(100), regret=float(100))
+            for i in range(64,128):
+                for j in range(64+i+1,128):
+                    if i != j:
+                        G.add_edge(i, j, weight=float(1e6), regret_pred=float(100), regret=float(100))
+
         init_cost = utils.tour_cost(G, init_tour)
         best_tour, best_cost, search_progress_i, cnt_ans = algorithms.guided_local_search(G, init_tour, init_cost,
                                                                                  t + args.time_limit, weight='weight',
@@ -143,31 +154,14 @@ if __name__ == '__main__':
             })
         
         search_progress.append(row)
-        # print('tour : ',best_tour)
-        # edge_weight, _ = nx.attr_matrix(G, 'weight')
-        # print('orignal cost: ', tour_cost2(best_tour, edge_weight)+value)
-        # print('init_tour cost: ', tour_cost2(init_tour, edge_weight)+value)
-        # print(best_cost)
-     
-        if init_cost != best_cost:
-            print('opt : ',opt_cost)
-            print('init : ',init_cost)
-            print('best : ',best_cost)
-        # print(init_tour)
-        # orignal_tour = [x for idx, x in enumerate(init_tour) if idx % 2 == 0]
-        # print(orignal_tour)
-        # print(opt_cost)
-        # print(init_cost)
+        if args.tsp_as_atsp:
+            init_cost += num_nodes/2*1e6
+            opt_cost += num_nodes/2*1e6
+            best_cost += num_nodes/2*1e6
         edge_weight, _ = nx.attr_matrix(G, 'weight')
-        # orignal_weights = edge_weight[ 64:, :64]
-        # print(orignal_weights)
-        # print('orignal cost: ', tour_cost2(orignal_tour, orignal_weights))
         regret, _ = nx.attr_matrix(G, 'regret')
         regret_pred, _ = nx.attr_matrix(G, 'regret_pred')
-        # if cnt == 0:
-        #     print(edge_weight,flush=True)
-        #     print(regret,flush=True)
-        #     print(regret_pred,flush=True)
+     
         with open(args.output_path / f"instance{cnt}.txt", "w") as f:
             # Save array1
             f.write("edge_weight:\n")
@@ -195,11 +189,13 @@ if __name__ == '__main__':
         
         init_gaps.append(init_gap)
         final_gaps.append(final_gap)
-        print('Avg Gap init: {:.4f}'.format(np.mean(init_gaps)))
-        print('Avg Gap best: {:.4f}'.format(np.mean(final_gaps)))        
+        
         pbar.set_postfix({
                 'Avg Gap init:': '{:.4f}'.format(np.mean(init_gaps)),
                 'Avg Gap best:': '{:.4f}'.format(np.mean(final_gaps)),
+                'optimal': f'{opt_cost}',
+                'init': f'{init_cost}',
+                'best': f'{best_cost}'
             })
         
 

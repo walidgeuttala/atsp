@@ -14,9 +14,9 @@ from sklearn.preprocessing import MinMaxScaler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocess a dataset.')
     parser.add_argument('dir', type=pathlib.Path)
-    parser.add_argument('--n_train', type=int, default=3000)
-    parser.add_argument('--n_test', type=int, default=1450)
-    parser.add_argument('--n_val', type=int, default=1450)
+    parser.add_argument('--n_train', type=int, default=5000)
+    parser.add_argument('--n_test', type=int, default=450)
+    parser.add_argument('--n_val', type=int, default=450)
     args = parser.parse_args()
 
     if (args.dir / 'scalers.pkl').is_file():

@@ -19,7 +19,7 @@ def get_conv(conv_type, input_dim, output_dim, alpha):
     elif conv_type == "sage":
         return SAGEConv(input_dim, output_dim)
     elif conv_type == "gat":
-        return GATConv(input_dim, output_dim, heads=8)
+        return GATConv(input_dim, output_dim, heads=1)
     elif conv_type == "dir-gcn":
         return DirGCNConv(input_dim, output_dim, alpha)
     elif conv_type == "dir-sage":
