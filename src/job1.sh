@@ -11,6 +11,7 @@
 #SBATCH --mail-type=ALL         # Email notification for job status changes
 #SBATCH --mail-user=abis28891@gmail.com  # Email address for notifications
 
-#python atsp_to_tsp.py False ../../cleaned_data_n5900 ../../atsp_n5900 0. 0.
+#python transform.py ../../atsp_n5900 ../../tsp_n5900 True
 
-python preprocess_dataset.py ../../atsp_n5900
+python preprocess_dataset.py ../../tsp_n5900
+#python testing.py

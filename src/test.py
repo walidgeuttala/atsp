@@ -16,6 +16,7 @@ from model import get_model
 import algorithms
 import utils
 from dataset import TSPDataset
+from transform import tsp_to_atsp_instance
 
 #import tqdm.auto as tqdm
 def tour_cost2(tour, weight):
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_features', type=int, default=1)
     parser.add_argument('--num_classes', type=int, default=1)
     parser.add_argument('--save_prediction', type=bool, default=True)
-    parser.add_argument('--tsp_as_atsp', type=bool, default=False)
+    parser.add_argument('--tsp', type=bool, default=True)
     args = parser.parse_args()
     args.output_path.mkdir(parents=True, exist_ok=True)
 
@@ -110,6 +111,7 @@ if __name__ == '__main__':
         with open(test_data.root_dir / instance, 'rb') as file:
             G = pickle.load(file)
         num_nodes = G.number_of_nodes()
+        
         opt_cost = utils.optimal_cost(G, weight='weight')
 
         t = time.time()
@@ -127,21 +129,16 @@ if __name__ == '__main__':
             regret_pred = test_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
             for idx in range(len(G.edges())):
                 G[test_data.mapping[idx][0]][test_data.mapping[idx][1]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
-            
-            init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
-            
-        edge_weight, _ = nx.attr_matrix(G, 'weight')
-        if args.tsp_as_atsp:
-            for i in range(64):
-                for j in range(i+1,64):
-                    if i != j:
-                        G.add_edge(i, j, weight=float(1e6), regret_pred=float(100), regret=float(100))
-            for i in range(64,128):
-                for j in range(64+i+1,128):
-                    if i != j:
-                        G.add_edge(i, j, weight=float(1e6), regret_pred=float(100), regret=float(100))
 
+        if args.tsp:  
+            G = tsp_to_atsp_instance(G)
+        
+        init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
         init_cost = utils.tour_cost(G, init_tour)
+        
+        print(init_tour)
+        print(init_cost)
+
         best_tour, best_cost, search_progress_i, cnt_ans = algorithms.guided_local_search(G, init_tour, init_cost,
                                                                                  t + args.time_limit, weight='weight',
                                                                                  guides=args.guides,
@@ -154,7 +151,7 @@ if __name__ == '__main__':
             })
         
         search_progress.append(row)
-        if args.tsp_as_atsp:
+        if args.atsp_as_tsp:
             init_cost += num_nodes/2*1e6
             opt_cost += num_nodes/2*1e6
             best_cost += num_nodes/2*1e6
@@ -165,17 +162,17 @@ if __name__ == '__main__':
         with open(args.output_path / f"instance{cnt}.txt", "w") as f:
             # Save array1
             f.write("edge_weight:\n")
-            np.savetxt(f, edge_weight, fmt="%.8f", delimiter=" ")
+            np.savetxt(f, utils.add_diag(H.x.cpu()).numpy(), fmt="%.8f", delimiter=" ")
             f.write("\n")
 
             # Save array2
             f.write("regret:\n")
-            np.savetxt(f, regret, fmt="%.8f", delimiter=" ")
+            np.savetxt(f, utils.add_diag(H.y.cpu()).numpy(), fmt="%.8f", delimiter=" ")
             f.write("\n")
 
             # Save array3
             f.write("regret_pred:\n")
-            np.savetxt(f, regret_pred, fmt="%.8f", delimiter=" ")
+            np.savetxt(f, utils.add_diag(y_pred.cpu()).numpy(), fmt="%.8f", delimiter=" ")
             f.write("\n")
 
             f.write(f"opt_cost: {opt_cost}\n")
@@ -197,7 +194,7 @@ if __name__ == '__main__':
                 'init': f'{init_cost}',
                 'best': f'{best_cost}'
             })
-        
+        break
 
     search_progress_df = pd.DataFrame.from_records(search_progress)
     search_progress_df['best_cost'] = search_progress_df.groupby('instance')['cost'].cummin()

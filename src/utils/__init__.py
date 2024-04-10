@@ -5,7 +5,7 @@ import numpy as np
 #import tsplib95
 #from matplotlib import colors
 import linecache
-
+import torch
 def tour_to_edge_attribute(G, tour):
     in_tour = {}
     tour_edges = list(zip(tour[:-1], tour[1:]))
@@ -19,6 +19,17 @@ def tour_cost(G, tour, weight='weight'):
     for e in zip(tour[:-1], tour[1:]):
         c += G.edges[e][weight]
     return c
+
+def add_diag(t1):
+    t2 = torch.zeros(64, 64, dtype=torch.float32)
+    cnt = 0
+    for i in range(4):
+        for j in range(4):
+            if i == j:
+                continue
+            t2[i][j] = t1[cnt]
+            cnt += 1
+    return t2
 
 def tour_cost2(tour, weight):
     c = 0

@@ -65,18 +65,18 @@ def train_parse_args():
 
     ### Dataset Args
     parser.add_argument("--dataset", type=str, help="Name of dataset", default="atsp")
-    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../atsp_n5900")
+    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../tsp_n5900")
     parser.add_argument("--tb_dir", type=pathlib.Path, help="Directory to save checkpoints", default="../../checkpoint")
 
     ### Model Args
     parser.add_argument("--model", type=str, help="Model type", default="gnn")
-    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=32)
+    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
     parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=1)
     parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.0)
     parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
     parser.add_argument("--learn_alpha", action="store_true")
-    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="dir-gat")
-    parser.add_argument("--gat_model", type=bool, help="GAT with skip connetion", default=False)
+    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="sage")
+    parser.add_argument("--gat_model", type=bool, help="GAT with skip connetion", default=True)
     parser.add_argument("--normalize", action="store_true")
     parser.add_argument("--jk", type=str, choices=["max", "cat", False], default="max")
     parser.add_argument('--num_features', type=int, default=1)

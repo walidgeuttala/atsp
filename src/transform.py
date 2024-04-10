@@ -4,6 +4,26 @@ import pickle
 import networkx as nx
 import pathlib
 
+
+def tsp_to_atsp_instance(G1):
+    num_nodes = G1.number_of_nodes() // 2
+    G2 = nx.DiGraph()
+    G2.add_nodes_from(range(num_nodes))
+    G2.add_edges_from([(u, v) for u in range(num_nodes) for v in range(num_nodes) if u != v])
+
+    first_edge = next(G1.edges())
+
+    # Get the attribute names of the first edge
+    attribute_names = G1[first_edge[0]][first_edge[1]].keys()
+    attribute_names_list = list(attribute_names)
+    for attribute_name in attribute_names_list:
+        attribute, _ = nx.attr_matrix(G1, attribute_name)
+        attribute = attribute[num_nodes:, :num_nodes]
+        for u, v in G2.edges():
+            G2[u][v][attribute_name] = attribute[u, v]
+    
+    return G2
+
 def tsp_to_atsp(args):
     instances = list(args.input_dir.glob('instance*.pkl'))
     if not os.path.exists(args.output_dir):
@@ -34,7 +54,7 @@ def tsp_to_atsp(args):
             pickle.dump(G2, file)
 
 def atsp_to_tsp(args):
-    instances = list(args.input_dir.glob('*.pkl'))
+    instances = list(args.input_dir.glob('instance*.pkl'))
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
     for idx, instance in enumerate(instances):
@@ -43,9 +63,10 @@ def atsp_to_tsp(args):
             G1 = pickle.load(file)
         
         num_nodes = G1.number_of_nodes()
+        print(num_nodes)
         G2 = nx.Graph()
         G2.add_nodes_from(range(num_nodes*2))
-        G2.add_edges_from([(u, v) for u in range(num_nodes*2) for v in range(u+1, num_nodes*2) if u != v])
+        G2.add_edges_from([(u+64, v) for u in range(num_nodes) for v in range(num_nodes) if u != v])
         # Get the weight
         weight, _ = nx.attr_matrix(G1, 'weight')
         # Get the regret
@@ -55,22 +76,10 @@ def atsp_to_tsp(args):
         # [INF][A.T]
         # [A  ][INF]
         for u, v in G2.edges():
-            # This for both [INF] matrix
-            if (u < num_nodes and v < num_nodes) or (u > num_nodes and v > num_nodes):
-                G2[u][v]['weight'] = args.INF
-                G2[u][v]['regret'] = args.INF 
-            # Fill DIAG value
-            elif ((u - num_nodes) == v) or (u == (v - num_nodes)):
-                G2[u][v]['weight'] = args.DIAG
-                G2[u][v]['regret'] = args.DIAG
-            # [A  ]
-            elif u > num_nodes and v < num_nodes: 
-                G2[u][v]['weight'] = weight[u, v]
-                G2[u][v]['regret'] = regret[u, v]
-            # [A.T]
-            else:
-                G2[u][v]['weight'] = weight[v, u]
-                G2[u][v]['regret'] = regret[v, u]
+            G2[u][v]['weight'] = weight[u%num_nodes, v%num_nodes]
+            G2[u][v]['regret'] = regret[u%num_nodes, v%num_nodes]
+            G2[u][v]['in_solution'] = in_solution[v%num_nodes, u%num_nodes]
+           
 
         with open(output_name, 'wb') as file:
             pickle.dump(G2, file)
@@ -100,14 +109,12 @@ def atsp_to_tsp(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a dataset.')
-    parser.add_argument('atsp_to_tsp', type=bool)
     parser.add_argument('input_dir', type=pathlib.Path)
     parser.add_argument('output_dir', type=pathlib.Path)
-    parser.add_argument('INF', type=float)
-    parser.add_argument('DIAG', type=float)
-
+    parser.add_argument('atsp_to_tsp', type=bool, default=True)
     args = parser.parse_args()
-    args.atsp_to_tsp = False
+
+    args.atsp_to_tsp = True
     if args.atsp_to_tsp:
         atsp_to_tsp(args)
     else:

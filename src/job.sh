@@ -12,4 +12,4 @@
 #SBATCH --mail-user=abis28891@gmail.com  # Email address for notifications
 
 python train.py
-python test.py ../../atsp_n5900/test.txt ../../checkpoint/version8/checkpoint_best_val.pt ../../checkpoint/version8/run_results regret_pred ../../checkpoint/version8/test_results --use_gpu
+python test.py ../../tsp_n5900/test.txt ../../checkpoint/version0/checkpoint_best_val.pt ../../checkpoint/version0/run_results regret_pred ../../checkpoint/version0/test_results --use_gpu

@@ -8,7 +8,7 @@ import torch
 import torch.utils.data
 import pickle
 import utils 
-from torch_geometric.utils import from_networkx
+from torch_geometric.utils import from_networkx, add_remaining_self_loops
 
 
 def set_features(G):
@@ -75,10 +75,9 @@ class TSPDataset(torch.utils.data.Dataset):
         # only works for homogenous datasets
         with open(self.root_dir / self.instances[0], 'rb') as file:
             G = pickle.load(file)
-        
         lG = nx.line_graph(G)
-        
         self.G = from_networkx(lG)
+        self.G.edge_index = add_remaining_self_loops(self.G.edge_index)[0]
         self.mapping = dict(zip(range(lG.number_of_nodes()), lG.nodes()))
 
 
@@ -95,16 +94,13 @@ class TSPDataset(torch.utils.data.Dataset):
         return H
 
     def get_scaled_features(self, G):
-        attribute_name = 'weight'
-        # attribute_name = 'features'
-        # weight = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]][attribute_name].item() for u in range(self.G.num_nodes)], dtype=torch.float32)
-
+       
         # Step 3: Extract edge features and assign them to the PyG Data object
-        weight = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]][attribute_name] for u in range(self.G.num_nodes)], dtype=torch.float32)
+        weight = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]]['weight'] for u in range(self.G.num_nodes)], dtype=torch.float32)
         regret = torch.tensor([G[self.mapping[u][0]][self.mapping[u][1]]['regret'] for u in range(self.G.num_nodes)], dtype=torch.float32)
              
         H = self.G.clone()
-        H.x = torch.tensor(self.scalers[attribute_name].transform(weight.view(-1, 1)), dtype=torch.float32)
+        H.x = torch.tensor(self.scalers['weight'].transform(weight.view(-1, 1)), dtype=torch.float32)
         H.y = torch.tensor(self.scalers['regret'].transform(regret.view(-1, 1)), dtype=torch.float32)
 
         return H
