@@ -83,11 +83,10 @@ if __name__ == '__main__':
     parser.add_argument('--use_gpu', action='store_true')
     parser.add_argument('--num_features', type=int, default=1)
     parser.add_argument('--num_classes', type=int, default=1)
-    parser.add_argument('--save_prediction', type=bool, default=True)
-    parser.add_argument('--tsp', type=bool, default=True)
+    # parser.add_argument('--save_prediction', action="store_true")
+    parser.add_argument('--tsp', action="store_true")
     args = parser.parse_args()
     args.output_path.mkdir(parents=True, exist_ok=True)
-
     params_train = json.load(open(args.model_path.parent / 'params.json'))
     args_train = train_parse_args([])
     for key, value in params_train.items():
@@ -171,6 +170,7 @@ if __name__ == '__main__':
             f.write(f"num_iterations: {cnt_ans}\n")
             f.write(f"init_cost: {init_cost}\n")
             f.write(f"best_cost: {best_cost}\n")
+            
         
         cnt += 1
         init_gap = (init_cost / opt_cost - 1) * 100
@@ -184,9 +184,10 @@ if __name__ == '__main__':
                 'Avg Gap best:': '{:.4f}'.format(np.mean(final_gaps)),
                 'optimal': f'{opt_cost}',
                 'init': f'{init_cost}',
-                'best': f'{best_cost}'
+                'best': f'{best_cost}',
+                'best_tour_len': f'{len(best_tour)}'
             })
-        break
+        
 
     search_progress_df = pd.DataFrame.from_records(search_progress)
     search_progress_df['best_cost'] = search_progress_df.groupby('instance')['cost'].cummin()
