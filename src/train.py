@@ -29,7 +29,7 @@ def train(model, data_loader, criterion, optimizer, args):
         optimizer.step()
 
         epoch_loss += loss.detach().item()
-
+        
     epoch_loss /= (batch_i + 1)
     return epoch_loss
 
@@ -71,14 +71,14 @@ def train_parse_args():
     ### Model Args
     parser.add_argument("--model", type=str, help="Model type", default="gnn")
     parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
-    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=1)
+    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=3)
     parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.0)
     parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
     parser.add_argument("--learn_alpha", action="store_true")
-    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="sage")
+    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="gat")
     parser.add_argument("--gat_model", type=bool, help="GAT with skip connetion", default=True)
     parser.add_argument("--normalize", action="store_true")
-    parser.add_argument("--jk", type=str, choices=["max", "cat", False], default="max")
+    parser.add_argument("--jk", type=str, choices=["max", "cat", False], default=False)
     parser.add_argument('--num_features', type=int, default=1)
     parser.add_argument('--num_classes', type=int, default=1)
     parser.add_argument('--target', type=str, default='regret')
@@ -86,12 +86,12 @@ def train_parse_args():
     ### Training Args
     parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.01)
     parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.001)
-    parser.add_argument('--n_epochs', type=int, default=100, help='Number of epochs')
+    parser.add_argument('--n_epochs', type=int, default=5, help='Number of epochs')
     parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
     parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
-    parser.add_argument('--checkpoint_freq', type=int, default=20, help='Checkpoint frequency')
+    parser.add_argument('--checkpoint_freq', type=int, default=5, help='Checkpoint frequency')
     parser.add_argument('--min_delta', type=float, default=1e-4, help='Early stopping min delta')
-    parser.add_argument('--batch_size', type=int, default=50, help='Batch size')
+    parser.add_argument('--batch_size', type=int, default=25, help='Batch size')
 
     ### System Args
     parser.add_argument('--device', type=str, default='cuda')
@@ -108,12 +108,11 @@ def run(args):
          
         train_data = dataset.TSPDataset(f"{args.dataset_directory}/train.txt")
         val_data = dataset.TSPDataset(f"{args.dataset_directory}/val.txt")
-
+        
         train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False)
         val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False)
-
-        model = get_model(args).to(args.device)
         
+        model = get_model(args).to(args.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init)
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, args.weight_decay)
 

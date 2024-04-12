@@ -178,6 +178,7 @@ class GNN(torch.nn.Module):
 
         self.alpha = nn.Parameter(torch.ones(1) * alpha, requires_grad=learn_alpha)
         output_dim = hidden_dim if jumping_knowledge != False else num_classes
+        
         if num_layers == 1:
             self.convs = ModuleList([get_conv(conv_type, num_features, output_dim, self.alpha)])
         else:
@@ -185,12 +186,13 @@ class GNN(torch.nn.Module):
             for _ in range(num_layers - 2):
                 self.convs.append(get_conv(conv_type, hidden_dim, hidden_dim, self.alpha))
             self.convs.append(get_conv(conv_type, hidden_dim, output_dim, self.alpha))
-
+        
         if jumping_knowledge != False:
             input_dim = hidden_dim * num_layers if jumping_knowledge == "cat" else hidden_dim
             self.lin = Linear(input_dim, num_classes)
+            
             self.jump = JumpingKnowledge(mode=jumping_knowledge, channels=hidden_dim, num_layers=num_layers)
-
+            
         self.num_layers = num_layers
         self.dropout = dropout
         self.jumping_knowledge = jumping_knowledge
@@ -220,7 +222,7 @@ def get_model(args):
             hidden_dim=args.hidden_dim,
             num_layers=args.num_layers,
             num_classes=args.num_classes,
-            n_heads = 8,
+            n_heads = 4,
         )
     else:
         return GNN(

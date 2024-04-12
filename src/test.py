@@ -73,11 +73,11 @@ def train_parse_args(values):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test model')
-    parser.add_argument('data_path', type=pathlib.Path)
-    parser.add_argument('model_path', type=pathlib.Path)
-    parser.add_argument('run_dir', type=pathlib.Path)
-    parser.add_argument('guides', type=str, nargs='+')
-    parser.add_argument('output_path', type=pathlib.Path)
+    parser.add_argument('--data_path', type=pathlib.Path)
+    parser.add_argument('--model_path', type=pathlib.Path)
+    parser.add_argument('--run_dir', type=pathlib.Path)
+    parser.add_argument('--guides', type=str, nargs='+')
+    parser.add_argument('--output_path', type=pathlib.Path)
     parser.add_argument('--time_limit', type=float, default=10.)
     parser.add_argument('--perturbation_moves', type=int, default=20)
     parser.add_argument('--use_gpu', action='store_true')
@@ -111,7 +111,6 @@ if __name__ == '__main__':
         with open(test_data.root_dir / instance, 'rb') as file:
             G = pickle.load(file)
         num_nodes = G.number_of_nodes()
-        
         opt_cost = utils.optimal_cost(G, weight='weight')
 
         t = time.time()
@@ -135,9 +134,6 @@ if __name__ == '__main__':
         
         init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
         init_cost = utils.tour_cost(G, init_tour)
-        
-        print(init_tour)
-        print(init_cost)
 
         best_tour, best_cost, search_progress_i, cnt_ans = algorithms.guided_local_search(G, init_tour, init_cost,
                                                                                  t + args.time_limit, weight='weight',
@@ -151,10 +147,6 @@ if __name__ == '__main__':
             })
         
         search_progress.append(row)
-        if args.atsp_as_tsp:
-            init_cost += num_nodes/2*1e6
-            opt_cost += num_nodes/2*1e6
-            best_cost += num_nodes/2*1e6
         edge_weight, _ = nx.attr_matrix(G, 'weight')
         regret, _ = nx.attr_matrix(G, 'regret')
         regret_pred, _ = nx.attr_matrix(G, 'regret_pred')
