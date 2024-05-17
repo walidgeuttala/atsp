@@ -6,13 +6,33 @@ import uuid
 import json
 import pathlib
 import os 
+import pickle
+import numpy as np
+
 
 import torch 
+import torch.nn.functional as F
 from torch_geometric.loader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from model import get_model
 import dataset
+import utils
+import algorithms
+
+
+
+def loss3(y_pred, y, args):
+    num_edges = int(y.shape[0]//args.batch_size)
+    y = y.view(args.batch_size, num_edges) ** 2
+    y = F.normalize(y, p=2, dim=1)
+    
+    y_pred = y_pred.view(args.batch_size, num_edges) ** 2
+    y_pred = F.normalize(y_pred, p=2, dim=1)
+    
+    cos_similarities = F.cosine_similarity(y, y_pred, dim=1)
+
+    return 1 - cos_similarities.mean()
 
 def train(model, data_loader, criterion, optimizer, args):
     model.train()
@@ -24,7 +44,7 @@ def train(model, data_loader, criterion, optimizer, args):
         y = batch.y
         optimizer.zero_grad()
         y_pred = model(x, batch.edge_index)
-        loss = criterion(y_pred, y.type_as(y_pred))
+        loss = criterion(y_pred.squeeze(), y.type_as(y_pred).squeeze())
         loss.backward()
         optimizer.step()
 
@@ -44,8 +64,7 @@ def test(model, data_loader, criterion, args):
             y = batch.y
 
             y_pred = model(x, batch.edge_index)
-            loss = criterion(y_pred, y.type_as(y_pred))
-
+            loss = criterion(y_pred.squeeze(), y.type_as(y_pred).squeeze())
             epoch_loss += loss.item()
 
         epoch_loss /= (batch_i + 1)
@@ -70,12 +89,12 @@ def train_parse_args():
 
     ### Model Args
     parser.add_argument("--model", type=str, help="Model type", default="gnn")
-    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
+    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=128*2)
     parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=3)
-    parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.0)
+    parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.)
     parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
     parser.add_argument("--learn_alpha", action="store_true")
-    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="gat")
+    parser.add_argument("--conv_type", type=str, help="DirGNN Model", default="dir-gat")
     parser.add_argument("--gat_model", action="store_true", help="GAT with skip connetion",)
     parser.add_argument("--normalize", action="store_true")
     parser.add_argument("--jk", type=str, choices=["max", "cat", False], default=False)
@@ -84,14 +103,14 @@ def train_parse_args():
     parser.add_argument('--target', type=str, default='regret')
 
     ### Training Args
-    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.01)
-    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.001)
+    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.001)
+    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.99)
     parser.add_argument('--n_epochs', type=int, default=10, help='Number of epochs')
-    parser.add_argument("--patience", type=int, help="Patience for early stopping", default=5)
+    parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
     parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
     parser.add_argument('--checkpoint_freq', type=int, default=5, help='Checkpoint frequency')
     parser.add_argument('--min_delta', type=float, default=1e-4, help='Early stopping min delta')
-    parser.add_argument('--batch_size', type=int, default=25, help='Batch size')
+    parser.add_argument('--batch_size', type=int, default=10, help='Batch size')
 
     ### System Args
     parser.add_argument('--device', type=str, default='cuda')
@@ -100,6 +119,11 @@ def train_parse_args():
     args = parser.parse_args()
 
     return args
+
+def loss2(y, args):
+    num_edges = int(y.shape[0]//args.batch_size ** 0.5)
+    y = y.view(args.batch_size, num_edges, num_edges)
+
 
 def run(args):
     torch.manual_seed(0)
@@ -144,9 +168,25 @@ def run(args):
             epoch_val_loss = test(model, val_loader, criterion, args)
             writer.add_scalar("Loss/validation", epoch_val_loss, epoch)
 
+            with open(args.dataset_directory / val_data.instances[0], 'rb') as file:
+                G = pickle.load(file)
+            H = val_data.get_scaled_features(G).to(args.device)
+            x = H.x
+            with torch.no_grad():
+                y_pred = model(x, H.edge_index)
+            regret_pred = val_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
+            for idx in range(len(G.edges())):
+                G[val_data.mapping[idx][0]][val_data.mapping[idx][1]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
+
+            opt_cost = utils.optimal_cost(G, weight='weight')
+            init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
+            init_cost = utils.tour_cost(G, init_tour)
             pbar.set_postfix({
                 'Train Loss': '{:.4f}'.format(epoch_loss),
                 'Validation Loss': '{:.4f}'.format(epoch_val_loss),
+                "correlation : ": '{:.4f}'.format(utils.correlation_matrix(y_pred.cpu(),H.y.cpu())),
+                "cosin correlation : ": '{:.4f}'.format(utils.cosine_similarity(y_pred.cpu().flatten(),H.y.cpu().flatten())),
+                "gap : ": '{:.4f}'.format((init_cost / opt_cost - 1) * 100),
             })
             
             if args.checkpoint_freq is not None and epoch > 0 and epoch % args.checkpoint_freq == 0:

@@ -105,6 +105,10 @@ if __name__ == '__main__':
     init_gaps = []
     final_gaps = []
     search_progress = []
+    avg_init_cost = []
+    avg_best_cost = []
+    avg_corr_normal = []
+    avg_corr_cosine = []
     cnt = 0
     for instance in pbar:
         with open(test_data.root_dir / instance, 'rb') as file:
@@ -130,7 +134,6 @@ if __name__ == '__main__':
 
         if args.tsp:  
             G = tsp_to_atsp_instance(G)
-        
         init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
         init_cost = utils.tour_cost(G, init_tour)
 
@@ -153,7 +156,7 @@ if __name__ == '__main__':
         with open(args.output_path / f"instance{cnt}.txt", "w") as f:
             # Save array1
             f.write("edge_weight:\n")
-            np.savetxt(f, utils.add_diag(H.x.cpu()).numpy(), fmt="%.8f", delimiter=" ")
+            np.savetxt(f, edge_weight, fmt="%.8f", delimiter=" ")
             f.write("\n")
 
             # Save array2
@@ -178,16 +181,18 @@ if __name__ == '__main__':
         
         init_gaps.append(init_gap)
         final_gaps.append(final_gap)
-        
+        avg_init_cost.append(init_cost)
+        avg_best_cost.append(best_cost)
+        avg_corr_normal.append(utils.correlation_matrix(y_pred.cpu(), H.y.cpu()))
+        avg_corr_cosine.append(utils.cosine_similarity(y_pred.view(-1).cpu(), H.y.view(-1).cpu()))
         pbar.set_postfix({
                 'Avg Gap init:': '{:.4f}'.format(np.mean(init_gaps)),
                 'Avg Gap best:': '{:.4f}'.format(np.mean(final_gaps)),
-                'optimal': f'{opt_cost}',
-                'init': f'{init_cost}',
-                'best': f'{best_cost}',
-                'best_tour_len': f'{len(best_tour)}'
+                'init': '{:.4f}'.format(np.mean(avg_init_cost)),
+                'best': '{:.4f}'.format(np.mean(avg_best_cost)),
+                'correlation normal': '{:.4f}'.format(np.mean(avg_corr_normal) * 100),
+                'correlation cosine': '{:.4f}'.format(np.mean(avg_corr_cosine) * 100),
             })
-        
 
     search_progress_df = pd.DataFrame.from_records(search_progress)
     search_progress_df['best_cost'] = search_progress_df.groupby('instance')['cost'].cummin()

@@ -6,6 +6,28 @@ import numpy as np
 #from matplotlib import colors
 import linecache
 import torch
+
+
+def correlation_matrix(tensor1, tensor2):
+    
+    # Flatten tensors into 1D arrays
+    flat_tensor1 = tensor1.flatten().numpy()
+    flat_tensor2 = tensor2.flatten().numpy()
+
+    # Concatenate flattened tensors along the second axis
+
+    # Compute the correlation matrix
+    corr_matrix = np.corrcoef(flat_tensor1, flat_tensor2)[0, 1]
+    
+    return corr_matrix
+
+def cosine_similarity(A, B):
+    dot_product = np.dot(A, B)
+    norm_A = np.linalg.norm(A)
+    norm_B = np.linalg.norm(B)
+    similarity = dot_product / (norm_A * norm_B)
+    return similarity
+
 def tour_to_edge_attribute(G, tour):
     in_tour = {}
     tour_edges = list(zip(tour[:-1], tour[1:]))
@@ -20,11 +42,11 @@ def tour_cost(G, tour, weight='weight'):
         c += G.edges[e][weight]
     return c
 
-def add_diag(t1):
-    t2 = torch.zeros(64, 64, dtype=torch.float32)
+def add_diag(t1, num_nodes = 64):
+    t2 = torch.zeros(num_nodes, num_nodes, dtype=torch.float32)
     cnt = 0
-    for i in range(4):
-        for j in range(4):
+    for i in range(num_nodes):
+        for j in range(num_nodes):
             if i == j:
                 continue
             t2[i][j] = t1[cnt]

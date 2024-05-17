@@ -7,8 +7,14 @@ from torch_geometric.nn import (
     SAGEConv,
     GCNConv,
     GATConv,
+    GENConv,
+    DirGNNConv,
+    FAConv,
     JumpingKnowledge,
+    Sequential,
+    MixHopConv
 )
+
 
 from dataset.data_utils import get_norm_adj
 
@@ -20,12 +26,18 @@ def get_conv(conv_type, input_dim, output_dim, alpha):
         return SAGEConv(input_dim, output_dim)
     elif conv_type == "gat":
         return GATConv(input_dim, output_dim, heads=1)
+    elif conv_type == "gen":
+        return GENConv(input_dim, output_dim, aggr='powermean', t=1.0, learn_t=True, num_layers=2, norm='layer') 
     elif conv_type == "dir-gcn":
         return DirGCNConv(input_dim, output_dim, alpha)
     elif conv_type == "dir-sage":
         return DirSageConv(input_dim, output_dim, alpha)
     elif conv_type == "dir-gat":
         return DirGATConv(input_dim, output_dim, heads=1, alpha=alpha)
+    elif conv_type == 'dir-gen':
+        return DirGNNConv(GENConv(input_dim, output_dim, aggr='powermean', t=1.0, learn_t=True, num_layers=2, norm='layer'))
+    elif conv_type == 'dir-fa':
+        return FAConv(-1, )
     else:
         raise ValueError(f"Convolution type {conv_type} not supported")
 
@@ -43,18 +55,24 @@ class SkipConnection(nn.Module):
 
 
 class AttentionLayer(nn.Module):
-    def __init__(self, embed_dim, n_heads, hidden_dim):
+    def __init__(self, embed_dim, n_heads, hidden_dim, first_layer=False):
         super(AttentionLayer, self).__init__()
 
-        self.message_passing = GATConv(embed_dim, embed_dim // n_heads, heads=n_heads)
+        if first_layer:
+            self.message_passing = MixHopConv(embed_dim, embed_dim, [0 ,1, 2], False, True)
+                                
+        else:
+            self.message_passing = SkipConnection(
+                                MixHopConv(embed_dim, embed_dim, [0 ,1, 2], False, True)
+                                )
         if embed_dim // n_heads * n_heads != embed_dim:
             print('wrong')
         
         self.feed_forward = nn.Sequential(
-            nn.BatchNorm1d(embed_dim),
+            nn.BatchNorm1d(embed_dim*3),
             SkipConnection(
                 nn.Sequential(
-                    nn.Linear(embed_dim, hidden_dim),
+                    nn.Linear(embed_dim*3, hidden_dim),
                     nn.ReLU(),
                     nn.Linear(hidden_dim, embed_dim)
                 ),
@@ -66,7 +84,7 @@ class AttentionLayer(nn.Module):
         h = self.message_passing(x, edge_index)
         h = self.feed_forward(h)
         return h
-
+    
 class EdgePropertyPredictionModel(nn.Module):
     def __init__(
             self,
@@ -74,23 +92,27 @@ class EdgePropertyPredictionModel(nn.Module):
             hidden_dim,
             num_classes,
             num_layers,
-            n_heads=8,
+            n_heads=1,
     ):
         super(EdgePropertyPredictionModel, self).__init__()
 
         self.hidden_dim = hidden_dim
 
         self.embed_layer = Linear(num_features, hidden_dim)
-        #attention_layers = [AttentionLayer(hidden_dim, n_heads, 512) for _ in range(num_layers)]
 
-        self.message_passing_layers = AttentionLayer(hidden_dim, n_heads, 512)
+        self.message_passing_layers = nn.ModuleList()
+        for idx in range(num_layers):
+            if idx == 0:
+                self.message_passing_layers.append(AttentionLayer(hidden_dim, n_heads, 128*3, True))
+            else:
+                self.message_passing_layers.append(AttentionLayer(hidden_dim, n_heads, 128*3))
 
         self.decision_layer = Linear(hidden_dim, num_classes)
 
     def forward(self, x, edge_index):
         h = self.embed_layer(x)
-        #for l in self.message_passing_layers:
-        h = self.message_passing_layers(h, edge_index)
+        for l in self.message_passing_layers:
+            h = l(h, edge_index)
         h = self.decision_layer(h)
         return h
 
@@ -140,7 +162,6 @@ class DirSageConv(torch.nn.Module):
             + self.alpha * self.conv_dst_to_src(x, edge_index)
         )
 
-
 class DirGATConv(torch.nn.Module):
     def __init__(self, input_dim, output_dim, heads, alpha):
         super(DirGATConv, self).__init__()
@@ -177,7 +198,7 @@ class GNN(torch.nn.Module):
         super(GNN, self).__init__()
 
         self.alpha = nn.Parameter(torch.ones(1) * alpha, requires_grad=learn_alpha)
-        output_dim = hidden_dim if jumping_knowledge != False else num_classes
+        output_dim = hidden_dim if jumping_knowledge else num_classes 
         
         if num_layers == 1:
             self.convs = ModuleList([get_conv(conv_type, num_features, output_dim, self.alpha)])
@@ -192,7 +213,8 @@ class GNN(torch.nn.Module):
             self.lin = Linear(input_dim, num_classes)
             
             self.jump = JumpingKnowledge(mode=jumping_knowledge, channels=hidden_dim, num_layers=num_layers)
-            
+        else:
+            self.lin = Linear(output_dim, num_classes)
         self.num_layers = num_layers
         self.dropout = dropout
         self.jumping_knowledge = jumping_knowledge
@@ -203,7 +225,7 @@ class GNN(torch.nn.Module):
         for i, conv in enumerate(self.convs):
             x = conv(x, edge_index)
             if i != len(self.convs) - 1 or self.jumping_knowledge:
-                x = F.relu(x)
+                x = F.selu(x)
                 x = F.dropout(x, p=self.dropout, training=self.training)
                 if self.normalize:
                     x = F.normalize(x, p=2, dim=1)
@@ -213,18 +235,10 @@ class GNN(torch.nn.Module):
             x = self.jump(xs)
             x = self.lin(x)
 
-        return torch.nn.functional.log_softmax(x, dim=1)
+        return x
 
 def get_model(args):
-    if args.gat_model:
-        return EdgePropertyPredictionModel(
-            num_features=args.num_features,
-            hidden_dim=args.hidden_dim,
-            num_layers=args.num_layers,
-            num_classes=args.num_classes,
-            n_heads = 4,
-        )
-    else:
+    
         return GNN(
             num_features=args.num_features,
             hidden_dim=args.hidden_dim,
