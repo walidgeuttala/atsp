@@ -1,0 +1,7 @@
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [02:29<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 222, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 179, in run
+    G[val_data.mapping[idx][0]][val_data.mapping[idx][1]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
+AttributeError: 'TSPDataset' object has no attribute 'mapping'

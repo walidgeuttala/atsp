@@ -40,10 +40,10 @@ def train(model, data_loader, criterion, optimizer, args):
     epoch_loss = 0
     for batch_i, batch in enumerate(data_loader):
         batch = batch.to(args.device)
-        x = batch.x
-        y = batch.y
+        x = batch['node1'].x
+        y = batch['node1'].y
         optimizer.zero_grad()
-        y_pred = model(x, batch.edge_index)
+        y_pred = model(batch, x)
         loss = criterion(y_pred.squeeze(), y.type_as(y_pred).squeeze())
         loss.backward()
         optimizer.step()
@@ -60,10 +60,10 @@ def test(model, data_loader, criterion, args):
         epoch_loss = 0
         for batch_i, batch in enumerate(data_loader):
             batch = batch.to(args.device)
-            x = batch.x
-            y = batch.y
+            x = batch['node1'].x
+            y = batch['node1'].y
 
-            y_pred = model(x, batch.edge_index)
+            y_pred = model(batch, x)
             loss = criterion(y_pred.squeeze(), y.type_as(y_pred).squeeze())
             epoch_loss += loss.item()
 
@@ -84,12 +84,12 @@ def train_parse_args():
 
     ### Dataset Args
     parser.add_argument("--dataset", type=str, help="Name of dataset", default="atsp")
-    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../tsp_n5900")
+    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../atsp_n5900")
     parser.add_argument("--tb_dir", type=pathlib.Path, help="Directory to save checkpoints", default="../../checkpoint")
 
     ### Model Args
     parser.add_argument("--model", type=str, help="Model type", default="gnn")
-    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=128*2)
+    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
     parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=3)
     parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.)
     parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
@@ -105,7 +105,7 @@ def train_parse_args():
     ### Training Args
     parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.001)
     parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.99)
-    parser.add_argument('--n_epochs', type=int, default=10, help='Number of epochs')
+    parser.add_argument('--n_epochs', type=int, default=1, help='Number of epochs')
     parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
     parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
     parser.add_argument('--checkpoint_freq', type=int, default=5, help='Checkpoint frequency')
@@ -171,21 +171,21 @@ def run(args):
             with open(args.dataset_directory / val_data.instances[0], 'rb') as file:
                 G = pickle.load(file)
             H = val_data.get_scaled_features(G).to(args.device)
-            x = H.x
+            x = H['node1'].x
             with torch.no_grad():
-                y_pred = model(x, H.edge_index)
+                y_pred = model(H, x)
             regret_pred = val_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
-            for idx in range(len(G.edges())):
-                G[val_data.mapping[idx][0]][val_data.mapping[idx][1]]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
-
+            for edge, idx in train_data.edge_id.items():
+                G.edges[edge]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
+            
             opt_cost = utils.optimal_cost(G, weight='weight')
             init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
             init_cost = utils.tour_cost(G, init_tour)
             pbar.set_postfix({
                 'Train Loss': '{:.4f}'.format(epoch_loss),
                 'Validation Loss': '{:.4f}'.format(epoch_val_loss),
-                "correlation : ": '{:.4f}'.format(utils.correlation_matrix(y_pred.cpu(),H.y.cpu())),
-                "cosin correlation : ": '{:.4f}'.format(utils.cosine_similarity(y_pred.cpu().flatten(),H.y.cpu().flatten())),
+                "correlation : ": '{:.4f}'.format(utils.correlation_matrix(y_pred.cpu(),H['node1'].y.cpu())),
+                "cosin correlation : ": '{:.4f}'.format(utils.cosine_similarity(y_pred.cpu().flatten(),H['node1'].y.cpu().flatten())),
                 "gap : ": '{:.4f}'.format((init_cost / opt_cost - 1) * 100),
             })
             
@@ -215,7 +215,8 @@ def run(args):
         json.dump(params, open(args.tb_dir / run_name / 'params.json', 'w'))
 
         save(model, optimizer, epoch, epoch_loss, epoch_val_loss, log_dir / 'checkpoint_final.pt')
-
+        model_scripted = torch.jit.script(model)
+        model_scripted.save('walid.pt') 
 
 if __name__ == '__main__':
     args = train_parse_args()

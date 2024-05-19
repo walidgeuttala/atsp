@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 294, in <module>
+    model = RGCN4(in_feats=1, hid_feats=32, out_feats=1, rel_names=['ss', 'st', 'ts', 'tt', 'pp'])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 269, in __init__
+    self.gnn_layers.append(HeteroConv(conv_dict, aggr='sum'))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/p_gnngw/miniconda3/envs/cuda118/lib/python3.12/site-packages/torch_geometric/nn/conv/hetero_conv.py", line 71, in __init__
+    check_add_self_loops(module, [edge_type])
+  File "/home/p_gnngw/miniconda3/envs/cuda118/lib/python3.12/site-packages/torch_geometric/utils/hetero.py", line 76, in check_add_self_loops
+    raise ValueError(
+ValueError: 'add_self_loops' attribute set to 'True' on module 'GATConv(32, 16, heads=2)' for use with edge type(s) '['st']'. This will lead to incorrect message passing results.

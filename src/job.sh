@@ -18,7 +18,7 @@
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type sage
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version1/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version1/run_results --output_path ../../checkpoint/version1/test_results --use_gpu
 #python train.py --normalize --dataset_directory ../../atsp_n5900/ 
-python test.py --data_path ../../atsp_n5900/test3.txt --model_path ../../checkpoint/version40/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version40/run_results --output_path ../../checkpoint/version40/test_results --use_gpu
+#python test.py --data_path ../../atsp_n5900/test3.txt --model_path ../../checkpoint/version40/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version40/run_results --output_path ../../checkpoint/version40/test_results --use_gpu
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type gat
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version3/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version3/run_results --output_path ../../checkpoint/version3/test_results --use_gpu
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type dir-sage
@@ -29,3 +29,5 @@ python test.py --data_path ../../atsp_n5900/test3.txt --model_path ../../checkpo
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version6/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version6/run_results --output_path ../../checkpoint/version6/test_results --use_gpu
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type dir-gat
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version7/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version7/run_results --output_path ../../checkpoint/version7/test_results --use_gpu
+python test_fun.py
+#python train.py --normalize --dataset_directory ../../atsp_n5900/ 

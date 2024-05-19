@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 381, in <module>
+    y_pred = model(batch, x)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 352, in forward
+    x_dict = gnn_layer(x_dict, data.edge_index_dict)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 318, in forward
+    out = conv((x_dict[src_type], x_dict[dst_type]), edge_index)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 279, in forward
+    x = torch.matmul(x, self.weight)
+TypeError: matmul(): argument 'input' (position 1) must be Tensor, not tuple

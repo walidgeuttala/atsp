@@ -237,17 +237,64 @@ class GNN(torch.nn.Module):
 
         return x
 
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch_geometric.nn import GATConv, HeteroConv
+from torch_geometric.data import HeteroData
+
+class MLP(nn.Module):
+    """Construct two-layer MLP-type aggregator for GIN model"""
+
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super().__init__()
+        self.linears = nn.ModuleList()
+        # two-layer MLP
+        self.linears.append(nn.Linear(input_dim, hidden_dim, bias=False))
+        self.linears.append(nn.Linear(hidden_dim, output_dim, bias=False))
+        self.batch_norm = nn.BatchNorm1d(hidden_dim)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        h = x
+        h = self.relu(self.batch_norm(self.linears[0](h)))
+        return self.linears[1](h)
+
+class RGCN4(nn.Module):
+    def __init__(self, num_features, hidden_dim, num_classes, rel_names, num_layers=2, n_heads=2):
+        super().__init__()
+        self.rel_names = rel_names
+
+        self.embed_layer = MLP(num_features, hidden_dim, hidden_dim)
+
+        self.gnn_layers = nn.ModuleList()
+        for _ in range(num_layers):
+            conv_dict = {
+                ('node1', rel, 'node1'): GATConv(hidden_dim, hidden_dim // n_heads, heads=n_heads,add_self_loops=False)
+                for rel in rel_names
+            }
+            self.gnn_layers.append(HeteroConv(conv_dict, aggr='sum'))
+
+        self.decision_layer = MLP(hidden_dim, hidden_dim, num_classes)
+
+    def forward(self, data, inputs):
+        x_dict = {'node1': self.embed_layer(inputs)}
+        for gnn_layer in self.gnn_layers:
+            x_dict = gnn_layer(x_dict, data.edge_index_dict)
+            x_dict = {k: F.leaky_relu(v).flatten(1) for k, v in x_dict.items()}
+            x_dict['node1'] += x_dict['node1']
+
+        h = self.decision_layer(x_dict['node1'])
+        return h
+
 def get_model(args):
     
-        return GNN(
+        return RGCN4(
             num_features=args.num_features,
             hidden_dim=args.hidden_dim,
             num_layers=args.num_layers,
             num_classes=args.num_classes,
-            dropout=args.dropout,
-            conv_type=args.conv_type,
-            jumping_knowledge=args.jk,
-            normalize=args.normalize,
-            alpha=args.alpha,
-            learn_alpha=args.learn_alpha,
+            n_heads=8,
+            rel_names = ['ss', 'st', 'ts', 'tt', 'pp']
         )
