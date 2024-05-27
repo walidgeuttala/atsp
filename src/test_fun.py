@@ -311,10 +311,9 @@ for batch_i, batch in enumerate(train_loader):
     
     break
 
+
 print(dataset[0].edge_index_dict)
 print(dataset[0]['node1'].x)
-print(list(dataset[0].edge_index_dict.values()))
-
 traced_model = torch.jit.trace(model, (list(batch.edge_index_dict.values()), x))
 
 model_scripted = torch.jit.script(traced_model)

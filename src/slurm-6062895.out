@@ -1,0 +1,16 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+torch.Size([129024, 1])
+{('node1', 'pp', 'node1'): tensor([[   0,    1,    2,  ..., 4029, 4030, 4031],
+        [  63,  126,  189,  ..., 4029, 4030, 4031]]), ('node1', 'ss', 'node1'): tensor([[   0,    0,    0,  ..., 4029, 4030, 4031],
+        [   1,    2,    3,  ..., 4029, 4030, 4031]]), ('node1', 'st', 'node1'): tensor([[   0,    0,    0,  ..., 4029, 4030, 4031],
+        [ 126,  189,  252,  ..., 4029, 4030, 4031]]), ('node1', 'ts', 'node1'): tensor([[   0,    0,    0,  ..., 4029, 4030, 4031],
+        [  64,   65,   66,  ..., 4029, 4030, 4031]]), ('node1', 'tt', 'node1'): tensor([[   0,    0,    0,  ..., 4029, 4030, 4031],
+        [ 127,  190,  253,  ..., 4029, 4030, 4031]])}
+tensor([[0.2029],
+        [0.1332],
+        [0.1325],
+        ...,
+        [0.1588],
+        [0.1897],
+        [0.1670]])
