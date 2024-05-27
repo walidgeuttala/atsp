@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 18, in <module>
-    from model import get_model
-  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 3, in <module>
-    from torch_sparse import SparseTensor
-ModuleNotFoundError: No module named 'torch_sparse'

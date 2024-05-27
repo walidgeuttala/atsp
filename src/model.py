@@ -243,14 +243,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv, HeteroConv
 from torch_geometric.data import HeteroData
+import torch_geometric as pyg
 
 class MLP(nn.Module):
-    """Construct two-layer MLP-type aggregator for GIN model"""
-
     def __init__(self, input_dim, hidden_dim, output_dim):
         super().__init__()
         self.linears = nn.ModuleList()
-        # two-layer MLP
         self.linears.append(nn.Linear(input_dim, hidden_dim, bias=False))
         self.linears.append(nn.Linear(hidden_dim, output_dim, bias=False))
         self.batch_norm = nn.BatchNorm1d(hidden_dim)
@@ -261,40 +259,60 @@ class MLP(nn.Module):
         h = self.relu(self.batch_norm(self.linears[0](h)))
         return self.linears[1](h)
 
-class RGCN4(nn.Module):
-    def __init__(self, num_features, hidden_dim, num_classes, rel_names, num_layers=2, n_heads=2):
+class HeteroConv(nn.Module):
+    def __init__(self, conv_list, aggr='sum'):
         super().__init__()
-        self.rel_names = rel_names
+        self.conv_dict = nn.ModuleList(conv_list)
+        self.aggr = aggr
+        self.node_type = 'node1'
 
-        self.embed_layer = MLP(num_features, hidden_dim, hidden_dim)
+    def forward(self, x_dict, edge_index_dict):
+        out_dict = {}
+        for idx, edge_index in enumerate(edge_index_dict):
+            conv = self.conv_dict[idx]
+            if self.node_type not in x_dict or self.node_type not in x_dict:
+                continue
+            out = conv((x_dict[self.node_type], x_dict[self.node_type]), edge_index)
+            if self.node_type not in out_dict:
+                out_dict[self.node_type] = out
+            else:
+                if self.aggr == 'sum':
+                    out_dict[self.node_type] += out
+                elif self.aggr == 'mean':
+                    out_dict[self.node_type] = (out_dict[self.node_type] + out) / 2
+                elif self.aggr == 'max':
+                    out_dict[self.node_type] = torch.max(out_dict[self.node_type], out)
+        return out_dict
 
+class RGCN4(nn.Module):
+    def __init__(self, in_feats, hid_feats, out_feats, rel_names, num_layers=2, n_heads=2):
+        super().__init__()
+        self.rel_names = list(rel_names)
+        self.embed_layer = MLP(in_feats, hid_feats, hid_feats)
         self.gnn_layers = nn.ModuleList()
         for _ in range(num_layers):
-            conv_dict = {
-                ('node1', rel, 'node1'): GATConv(hidden_dim, hidden_dim // n_heads, heads=n_heads,add_self_loops=False)
-                for rel in rel_names
-            }
-            self.gnn_layers.append(HeteroConv(conv_dict, aggr='sum'))
+            conv_list = [pyg.nn.conv.GATConv(hid_feats, hid_feats // n_heads, heads=n_heads, add_self_loops=False).jittable('(Tensor, Tensor, OptTensor) -> Tensor') for rel in self.rel_names]
+            self.gnn_layers.append(HeteroConv(conv_list, aggr='sum'))
+        self.decision_layer = MLP(hid_feats, hid_feats, out_feats)
 
-        self.decision_layer = MLP(hidden_dim, hidden_dim, num_classes)
-
-    def forward(self, data, inputs):
+    def forward(self, edge_index_dict, inputs):
         x_dict = {'node1': self.embed_layer(inputs)}
         for gnn_layer in self.gnn_layers:
-            x_dict = gnn_layer(x_dict, data.edge_index_dict)
+            x_dict = gnn_layer(x_dict, edge_index_dict)
             x_dict = {k: F.leaky_relu(v).flatten(1) for k, v in x_dict.items()}
             x_dict['node1'] += x_dict['node1']
-
         h = self.decision_layer(x_dict['node1'])
         return h
+
+
 
 def get_model(args):
     
         return RGCN4(
-            num_features=args.num_features,
-            hidden_dim=args.hidden_dim,
+            in_feats=args.num_features,
+            hid_feats=args.hidden_dim,
             num_layers=args.num_layers,
-            num_classes=args.num_classes,
+            out_feats=args.num_classes,
             n_heads=8,
             rel_names = ['ss', 'st', 'ts', 'tt', 'pp']
         )

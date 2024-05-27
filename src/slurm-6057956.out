@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 225, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 139, in run
+    model = get_model(args).to(args.device)
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 311, in get_model
+    return RGCN4(
+TypeError: RGCN4.__init__() got an unexpected keyword argument 'num_features'

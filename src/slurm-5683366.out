@@ -1,43 +1,0 @@
-  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [02:29<?, ?it/s, Train Loss=0.0076, Validation Loss=0.0047, correlation : =0.5939, cosin correlation : =0.9597, gap : =81.0222]100%|██████████| 1/1 [02:29<00:00, 149.19s/it, Train Loss=0.0076, Validation Loss=0.0047, correlation : =0.5939, cosin correlation : =0.9597, gap : =81.0222]100%|██████████| 1/1 [02:29<00:00, 149.19s/it, Train Loss=0.0076, Validation Loss=0.0047, correlation : =0.5939, cosin correlation : =0.9597, gap : =81.0222]
-Traceback (most recent call last):
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 223, in <module>
-    run(args)
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 218, in run
-    model_scripted = torch.jit.script(model)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_script.py", line 1284, in script
-    return torch.jit._recursive.create_script_module(
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 477, in create_script_module
-    concrete_type = get_module_concrete_type(nn_module, share_types)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 428, in get_module_concrete_type
-    concrete_type = concrete_type_store.get_or_create_concrete_type(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 369, in get_or_create_concrete_type
-    concrete_type_builder = infer_concrete_type_builder(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 234, in infer_concrete_type_builder
-    sub_concrete_type = get_module_concrete_type(item, share_types)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 428, in get_module_concrete_type
-    concrete_type = concrete_type_store.get_or_create_concrete_type(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 369, in get_or_create_concrete_type
-    concrete_type_builder = infer_concrete_type_builder(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 234, in infer_concrete_type_builder
-    sub_concrete_type = get_module_concrete_type(item, share_types)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 428, in get_module_concrete_type
-    concrete_type = concrete_type_store.get_or_create_concrete_type(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 369, in get_or_create_concrete_type
-    concrete_type_builder = infer_concrete_type_builder(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 234, in infer_concrete_type_builder
-    sub_concrete_type = get_module_concrete_type(item, share_types)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 428, in get_module_concrete_type
-    concrete_type = concrete_type_store.get_or_create_concrete_type(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 369, in get_or_create_concrete_type
-    concrete_type_builder = infer_concrete_type_builder(nn_module)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 271, in infer_concrete_type_builder
-    concrete_type_builder.add_constant(name, _get_valid_constant(name, value, type(nn_module).__name__))
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/jit/_recursive.py", line 114, in _get_valid_constant
-    raise TypeError(textwrap.dedent("""
-TypeError: 
-'set' object in attribute 'ModuleDict.CLASS_ATTRS' is not a valid constant.
-Valid constants are:
-1. a nn.ModuleList
-2. a value of type {bool, float, int, str, NoneType, torch.device, torch.layout, torch.dtype}
-3. a list or tuple of (2)
-

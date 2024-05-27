@@ -1,25 +1,0 @@
-  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [00:15<?, ?it/s]
-Traceback (most recent call last):
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 222, in <module>
-    run(args)
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 165, in run
-    epoch_loss = train(model, train_loader, criterion, optimizer, args)
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 46, in train
-    y_pred = model(batch, x)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 284, in forward
-    x_dict = gnn_layer(x_dict, data.edge_index_dict)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/hetero_conv.py", line 158, in forward
-    out = conv(*args, **kwargs)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/gat_conv.py", line 341, in forward
-    out = self.propagate(edge_index, x=x, alpha=alpha, size=size)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py", line 547, in propagate
-    out = self.message(**msg_kwargs)
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/gat_conv.py", line 386, in message
-    return alpha.unsqueeze(-1) * x_j
-torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.42 GiB (GPU 0; 39.43 GiB total capacity; 33.97 GiB already allocated; 1.75 GiB free; 37.19 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

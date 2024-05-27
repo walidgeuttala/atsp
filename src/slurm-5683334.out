@@ -1,9 +1,0 @@
-  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [02:31<?, ?it/s]
-Traceback (most recent call last):
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 222, in <module>
-    run(args)
-  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 174, in run
-    x = H.x
-  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/hetero_data.py", line 159, in __getattr__
-    raise AttributeError(f"'{self.__class__.__name__}' has no "
-AttributeError: 'HeteroData' has no attribute 'x'

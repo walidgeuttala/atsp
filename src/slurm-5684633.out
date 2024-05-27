@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 214, in <module>
-    dataset = TSPDataset(instances_file='../../atsp_n5900/val.txt', scalers_file='../../atsp_n5900/scalers.pkl')
-  File "/project/p_gnn001/code/tsp/atsp/src/test_fun.py", line 104, in __init__
-    self.scalers = pickle.load(open(scalers_file, 'rb'))['edges'] if 'edges' in scalers else scalers
-NameError: name 'scalers' is not defined

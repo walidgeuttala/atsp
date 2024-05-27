@@ -23,6 +23,7 @@ import utils
 from torch_geometric.utils import from_networkx, add_remaining_self_loops
 from torch.utils.data import Dataset
 from torch_geometric.data import HeteroData
+import torch_geometric as pyg
 import dgl
 def set_features(G):
     for e in G.edges:
@@ -249,28 +250,28 @@ class CustomGATConv(GATConv):
         return torch.jit.script(self)
 
 class HeteroConv(nn.Module):
-    def __init__(self, conv_dict, aggr='sum'):
+    def __init__(self, conv_list, aggr='sum'):
         super().__init__()
-        self.conv_dict = nn.ModuleDict(conv_dict)
+        self.conv_dict = nn.ModuleList(conv_list)
         self.aggr = aggr
+        self.node_type = 'node1'
 
     def forward(self, x_dict, edge_index_dict):
         out_dict = {}
-        for edge_type, edge_index in edge_index_dict.items():
-            src_type, rel_type, dst_type = edge_type
-            conv = self.conv_dict[rel_type]
-            if src_type not in x_dict or dst_type not in x_dict:
+        for idx, edge_index in enumerate(edge_index_dict):
+            conv = self.conv_dict[idx]
+            if self.node_type not in x_dict or self.node_type not in x_dict:
                 continue
-            out = conv((x_dict[src_type], x_dict[dst_type]), edge_index)
-            if dst_type not in out_dict:
-                out_dict[dst_type] = out
+            out = conv((x_dict[self.node_type], x_dict[self.node_type]), edge_index)
+            if self.node_type not in out_dict:
+                out_dict[self.node_type] = out
             else:
                 if self.aggr == 'sum':
-                    out_dict[dst_type] += out
+                    out_dict[self.node_type] += out
                 elif self.aggr == 'mean':
-                    out_dict[dst_type] = (out_dict[dst_type] + out) / 2
+                    out_dict[self.node_type] = (out_dict[self.node_type] + out) / 2
                 elif self.aggr == 'max':
-                    out_dict[dst_type] = torch.max(out_dict[dst_type], out)
+                    out_dict[self.node_type] = torch.max(out_dict[self.node_type], out)
         return out_dict
 
 class RGCN4(nn.Module):
@@ -280,14 +281,14 @@ class RGCN4(nn.Module):
         self.embed_layer = MLP(in_feats, hid_feats, hid_feats)
         self.gnn_layers = nn.ModuleList()
         for _ in range(num_layers):
-            conv_dict = {rel: CustomGATConv(hid_feats, hid_feats // n_heads, heads=n_heads, add_self_loops=False).jittable('(Tensor, Tensor, OptTensor) -> Tensor') for rel in self.rel_names}
-            self.gnn_layers.append(HeteroConv(conv_dict, aggr='sum'))
+            conv_list = [pyg.nn.conv.GATConv(hid_feats, hid_feats // n_heads, heads=n_heads, add_self_loops=False).jittable('(Tensor, Tensor, OptTensor) -> Tensor') for rel in self.rel_names]
+            self.gnn_layers.append(HeteroConv(conv_list, aggr='sum'))
         self.decision_layer = MLP(hid_feats, hid_feats, out_feats)
 
-    def forward(self, data, inputs):
+    def forward(self, edge_index_dict, inputs):
         x_dict = {'node1': self.embed_layer(inputs)}
         for gnn_layer in self.gnn_layers:
-            x_dict = gnn_layer(x_dict, data.edge_index_dict)
+            x_dict = gnn_layer(x_dict, edge_index_dict)
             x_dict = {k: F.leaky_relu(v).flatten(1) for k, v in x_dict.items()}
             x_dict['node1'] += x_dict['node1']
         h = self.decision_layer(x_dict['node1'])
@@ -296,7 +297,7 @@ class RGCN4(nn.Module):
 from torch_geometric.loader import DataLoader
 
 dataset = TSPDataset(instances_file='../../atsp_n5900/val.txt', scalers_file='../../atsp_n5900/scalers.pkl')
-train_loader = DataLoader(dataset, batch_size=1)
+train_loader = DataLoader(dataset, batch_size=32)
 model = RGCN4(in_feats=1, hid_feats=32, out_feats=1, rel_names=['ss', 'st', 'ts', 'tt', 'pp'])
 device = "cuda"
 model = model.to(device)
@@ -305,9 +306,16 @@ for batch_i, batch in enumerate(train_loader):
     batch = batch.to(device)
     x = batch['node1'].x
     y = batch['node1'].y
-    y_pred = model(batch, x)
+    y_pred = model(list(batch.edge_index_dict.values()), x)
     print(y_pred.shape)
+    
     break
 
-model_scripted = torch.jit.script(model)
+print(dataset[0].edge_index_dict)
+print(dataset[0]['node1'].x)
+print(list(dataset[0].edge_index_dict.values()))
+
+traced_model = torch.jit.trace(model, (list(batch.edge_index_dict.values()), x))
+
+model_scripted = torch.jit.script(traced_model)
 model_scripted.save('walid.pt')

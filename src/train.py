@@ -43,7 +43,7 @@ def train(model, data_loader, criterion, optimizer, args):
         x = batch['node1'].x
         y = batch['node1'].y
         optimizer.zero_grad()
-        y_pred = model(batch, x)
+        y_pred = model(list(batch.edge_index_dict.values()), x)
         loss = criterion(y_pred.squeeze(), y.type_as(y_pred).squeeze())
         loss.backward()
         optimizer.step()
@@ -63,7 +63,7 @@ def test(model, data_loader, criterion, args):
             x = batch['node1'].x
             y = batch['node1'].y
 
-            y_pred = model(batch, x)
+            y_pred = model(list(batch.edge_index_dict.values()), x)
             loss = criterion(y_pred.squeeze(), y.type_as(y_pred).squeeze())
             epoch_loss += loss.item()
 
@@ -107,7 +107,7 @@ def train_parse_args():
     parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.99)
     parser.add_argument('--n_epochs', type=int, default=1, help='Number of epochs')
     parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
-    parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
+    parser.add_argument("--num_runs", type=int, help="Max number of runs", default=10                                                                                                                                                                                                                                                                                                                                           )
     parser.add_argument('--checkpoint_freq', type=int, default=5, help='Checkpoint frequency')
     parser.add_argument('--min_delta', type=float, default=1e-4, help='Early stopping min delta')
     parser.add_argument('--batch_size', type=int, default=10, help='Batch size')
@@ -159,7 +159,8 @@ def run(args):
         # early stopping
         best_score = None
         counter = 0
-
+        H = None
+        x = None
         pbar = tqdm.trange(args.n_epochs)
         for epoch in pbar:
             epoch_loss = train(model, train_loader, criterion, optimizer, args)
@@ -173,7 +174,7 @@ def run(args):
             H = val_data.get_scaled_features(G).to(args.device)
             x = H['node1'].x
             with torch.no_grad():
-                y_pred = model(H, x)
+                y_pred = model(list(H.edge_index_dict.values()), x)
             regret_pred = val_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
             for edge, idx in train_data.edge_id.items():
                 G.edges[edge]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
@@ -215,8 +216,9 @@ def run(args):
         json.dump(params, open(args.tb_dir / run_name / 'params.json', 'w'))
 
         save(model, optimizer, epoch, epoch_loss, epoch_val_loss, log_dir / 'checkpoint_final.pt')
-        model_scripted = torch.jit.script(model)
-        model_scripted.save('walid.pt') 
+        traced_model = torch.jit.trace(model, (list(H.edge_index_dict.values()), x))
+        model_scripted = torch.jit.script(traced_model)
+        model_scripted.save('modelv1.pt')
 
 if __name__ == '__main__':
     args = train_parse_args()
