@@ -318,3 +318,6 @@ traced_model = torch.jit.trace(model, (list(batch.edge_index_dict.values()), x))
 
 model_scripted = torch.jit.script(traced_model)
 model_scripted.save('walid.pt')
+
+
+

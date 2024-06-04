@@ -89,8 +89,8 @@ def train_parse_args():
 
     ### Model Args
     parser.add_argument("--model", type=str, help="Model type", default="gnn")
-    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=64)
-    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=3)
+    parser.add_argument("--hidden_dim", type=int, help="Hidden dimension of model", default=128)
+    parser.add_argument("--num_layers", type=int, help="Number of GNN layers", default=4)
     parser.add_argument("--dropout", type=float, help="Feature dropout", default=0.)
     parser.add_argument("--alpha", type=float, help="Direction convex combination params", default=0.5)
     parser.add_argument("--learn_alpha", action="store_true")
@@ -103,11 +103,11 @@ def train_parse_args():
     parser.add_argument('--target', type=str, default='regret')
 
     ### Training Args
-    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.001)
-    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.99)
+    parser.add_argument("--lr_init", type=float, help="Learning Rate", default=0.0001)
+    parser.add_argument("--weight_decay", type=float, help="Weight decay", default=0.95)
     parser.add_argument('--n_epochs', type=int, default=1, help='Number of epochs')
     parser.add_argument("--patience", type=int, help="Patience for early stopping", default=10)
-    parser.add_argument("--num_runs", type=int, help="Max number of runs", default=10                                                                                                                                                                                                                                                                                                                                           )
+    parser.add_argument("--num_runs", type=int, help="Max number of runs", default=1)
     parser.add_argument('--checkpoint_freq', type=int, default=5, help='Checkpoint frequency')
     parser.add_argument('--min_delta', type=float, default=1e-4, help='Early stopping min delta')
     parser.add_argument('--batch_size', type=int, default=10, help='Batch size')

@@ -1,0 +1,39 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [00:22<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1132, in _try_get_data
+    data = self._data_queue.get(timeout=timeout)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/multiprocessing/queues.py", line 113, in get
+    if not self._poll(timeout):
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/multiprocessing/connection.py", line 257, in poll
+    return self._poll(timeout)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/multiprocessing/connection.py", line 424, in _poll
+    r = wait([self], timeout)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/multiprocessing/connection.py", line 931, in wait
+    ready = selector.select(timeout)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/selectors.py", line 416, in select
+    fd_event_list = self._selector.poll(timeout)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/_utils/signal_handling.py", line 66, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 973055) is killed by signal: Killed. 
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 225, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 166, in run
+    epoch_loss = train(model, train_loader, criterion, optimizer, args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 41, in train
+    for batch_i, batch in enumerate(data_loader):
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 633, in __next__
+    data = self._next_data()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1328, in _next_data
+    idx, data = self._get_data()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1294, in _get_data
+    success, data = self._try_get_data()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1145, in _try_get_data
+    raise RuntimeError('DataLoader worker (pid(s) {}) exited unexpectedly'.format(pids_str)) from e
+RuntimeError: DataLoader worker (pid(s) 973055) exited unexpectedly
+slurmstepd: error: Detected 1 oom-kill event(s) in StepId=6194903.batch. Some of your processes may have been killed by the cgroup out-of-memory handler.
