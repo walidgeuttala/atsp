@@ -1,0 +1,33 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+device : cuda
+  0%|          | 0/20 [00:00<?, ?it/s]  0%|          | 0/20 [00:02<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 231, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 175, in run
+    epoch_loss = train(model, train_loader, criterion, optimizer, args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 40, in train
+    for batch_i, batch in enumerate(data_loader):
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 633, in __next__
+    data = self._next_data()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1345, in _next_data
+    return self._process_data(data)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1371, in _process_data
+    data.reraise()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/_utils.py", line 644, in reraise
+    raise exception
+TypeError: Caught TypeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/project/p_gnn001/code/tsp/atsp/src/dataset/__init__.py", line 231, in __getitem__
+    H = self.get_scaled_features(G)
+  File "/project/p_gnn001/code/tsp/atsp/src/dataset/__init__.py", line 256, in get_scaled_features
+    H['node1'].x = torch.tensor(weight_scaled, dtype=torch.float32)
+TypeError: tuple indices must be integers or slices, not str
+

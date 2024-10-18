@@ -1,0 +1,10 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+device : cuda
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [01:25<?, ?it/s, avg_corr=0.4643, avg_corr_cosin=0.9339, avg_gap=90.8825, avg_init_cost=2612664.0000, avg_opt_cost=1368729.0000, epoch=0.0000, train_loss=0.0238, val_loss=0.0138]100%|██████████| 1/1 [01:25<00:00, 85.87s/it, avg_corr=0.4643, avg_corr_cosin=0.9339, avg_gap=90.8825, avg_init_cost=2612664.0000, avg_opt_cost=1368729.0000, epoch=0.0000, train_loss=0.0238, val_loss=0.0138]100%|██████████| 1/1 [01:25<00:00, 85.87s/it, avg_corr=0.4643, avg_corr_cosin=0.9339, avg_gap=90.8825, avg_init_cost=2612664.0000, avg_opt_cost=1368729.0000, epoch=0.0000, train_loss=0.0238, val_loss=0.0138]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 212, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 206, in run
+    traced_model = torch.jit.trace(model, (list(H.edge_index_dict.values()), x))
+AttributeError: 'NoneType' object has no attribute 'edge_index_dict'

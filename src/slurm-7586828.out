@@ -1,0 +1,27 @@
+Namespace(dataset='atsp', dataset_directory=PosixPath('../../tsp_input/generated_insatnces_3000_size_50'), tb_dir=PosixPath('../../checkpoint'), model='gnn', hidden_dim=128, num_layers=4, dropout=0.0, alpha=0.5, learn_alpha=False, conv_type='dir-gat', gat_model=False, normalize=True, jk=False, num_features=1, num_classes=1, target='regret', lr_init=0.0001, weight_decay=0.95, n_epochs=20, patience=10, num_runs=1, checkpoint_freq=5, min_delta=0.0001, batch_size=15, device='cuda', num_workers=4)
+device : cuda
+  0%|          | 0/20 [00:00<?, ?it/s]  0%|          | 0/20 [00:05<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 234, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 178, in run
+    epoch_loss = train(model, train_loader, criterion, optimizer, args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 46, in train
+    y_pred = model(batch.edge_index, x)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 226, in forward
+    x = conv(x, edge_index)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 179, in forward
+    return (1 - self.alpha) * self.conv_src_to_dst(x, edge_index) + self.alpha * self.conv_dst_to_src(
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/gat_conv.py", line 280, in forward
+    x_src = x_dst = self.lin(x).view(-1, H, C)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/dense/linear.py", line 147, in forward
+    return F.linear(x, self.weight, self.bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (236425x30 and 1x128)

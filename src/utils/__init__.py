@@ -6,7 +6,45 @@ import numpy as np
 #from matplotlib import colors
 import linecache
 import torch
+import pickle
 
+def nearest_neighbor(G, depot, weight='weight'):
+    tour = [depot]
+    while len(tour) < len(G.nodes):
+        i = tour[-1]
+        neighbours = [(j, G.edges[(i, j)][weight]) for j in G.neighbors(i) if j not in tour]
+        j, dist = min(neighbours, key=lambda e: e[1])
+        tour.append(j)
+
+    tour.append(depot)
+    return tour
+
+def atsp_results(model, args, val_data):
+    result2 = dict()
+    keys = ['avg_corr', 'avg_corr_cosin', 'avg_init_cost', 'avg_opt_cost', 'avg_gap']
+    for key in keys:
+        result2.setdefault(key, 0.)
+    for idx in range(30):
+        with open(args.dataset_directory / val_data.instances[0], 'rb') as file:
+            G = pickle.load(file)
+        H = val_data.get_scaled_features(G).to(args.device)
+        x = H.x
+        with torch.no_grad():
+            y_pred = model(list(H.edge_index_dict.values()), x)
+        regret_pred = val_data.scalers['regret'].inverse_transform(y_pred.cpu().numpy())
+        for edge, idx in val_data.edge_id.items():
+            G.edges[edge]['regret_pred'] = np.maximum(regret_pred[idx].item(), 0.)
+                
+        opt_cost = optimal_cost(G, weight='weight')
+        init_tour = nearest_neighbor(G, 0, weight='regret_pred')
+        init_cost = tour_cost(G, init_tour)
+        result2['avg_corr'] += correlation_matrix(y_pred.cpu(), H.y.cpu())
+        result2['avg_corr_cosin'] += cosine_similarity(y_pred.cpu().flatten(), H.y.cpu().flatten())
+        result2['avg_init_cost'] += init_cost
+        result2['avg_opt_cost'] += opt_cost
+        result2['avg_gap'] += (init_cost / opt_cost - 1) * 100
+
+    return result2
 
 def correlation_matrix(tensor1, tensor2):
     

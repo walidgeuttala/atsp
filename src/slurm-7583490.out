@@ -1,0 +1,5 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+device : cuda
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [01:33<?, ?it/s, Train Loss=0.0237, Validation Loss=0.0138, correlation : =0.4657, cosin correlation : =0.9340, gap : =90.8825]100%|██████████| 1/1 [01:33<00:00, 93.34s/it, Train Loss=0.0237, Validation Loss=0.0138, correlation : =0.4657, cosin correlation : =0.9340, gap : =90.8825]100%|██████████| 1/1 [01:33<00:00, 93.36s/it, Train Loss=0.0237, Validation Loss=0.0138, correlation : =0.4657, cosin correlation : =0.9340, gap : =90.8825]
+{'avg_corr': '0.4657', 'avg_corr_cosin': '0.9340', 'avg_init_cost': '2612664.0000', 'avg_opt_cost': '1368729.0000', 'avg_gap': '90.8825', 'train_loss': '0.0237', 'val_loss': '0.0138', 'epoch': '0.0000'}

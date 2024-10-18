@@ -177,8 +177,7 @@ class DirGATConv(torch.nn.Module):
         edge_index_t = torch.stack([edge_index[1], edge_index[0]], dim=0)
 
         return (1 - self.alpha) * self.conv_src_to_dst(x, edge_index) + self.alpha * self.conv_dst_to_src(
-            x, edge_index_t
-        )
+            x, edge_index_t)
 
 
 class GNN(torch.nn.Module):
@@ -308,11 +307,23 @@ class RGCN4(nn.Module):
 
 def get_model(args):
     
-        return RGCN4(
-            in_feats=args.num_features,
-            hid_feats=args.hidden_dim,
-            num_layers=args.num_layers,
-            out_feats=args.num_classes,
-            n_heads=8,
-            rel_names = ['ss', 'st', 'ts', 'tt', 'pp']
+        return GNN(
+        num_features=args.num_features,
+        num_classes=args.num_classes,
+        hidden_dim=args.hidden_dim,
+        num_layers=args.num_layers,
+        dropout=0,
+        conv_type="dir-gat",
+        jumping_knowledge=False,
+        normalize=False,
+        alpha=1 / 2,
+        learn_alpha=False,
         )
+    # RGCN4(
+    #         in_feats=args.num_features,
+    #         hid_feats=args.hidden_dim,
+    #         num_layers=args.num_layers,
+    #         out_feats=args.num_classes,
+    #         n_heads=8,
+    #         rel_names = ['ss', 'st', 'ts', 'tt', 'pp']
+    #     )

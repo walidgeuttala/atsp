@@ -1,0 +1,13 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [01:23<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 212, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 170, in run
+    result = utils.atsp_results(model, args, val_data)
+  File "/project/p_gnn001/code/tsp/atsp/src/utils/__init__.py", line 41, in atsp_results
+    result2['avg_corr'] += correlation_matrix(y_pred.cpu(), H.y.cpu())
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/hetero_data.py", line 159, in __getattr__
+    raise AttributeError(f"'{self.__class__.__name__}' has no "
+AttributeError: 'HeteroData' has no attribute 'y'

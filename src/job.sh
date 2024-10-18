@@ -30,4 +30,4 @@
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type dir-gat
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version7/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version7/run_results --output_path ../../checkpoint/version7/test_results --use_gpu
 #python test_fun.py
-python train.py --normalize --dataset_directory ../../atsp_n5900/ 
+python train.py --normalize

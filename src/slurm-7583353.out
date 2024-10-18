@@ -1,0 +1,12 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+device : cuda
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [01:23<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 212, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 171, in run
+    formatted_result = {key: f'{(value/args.n_samples_result_train):.4f}' for key, value in result.items()}  # Format values to 4 decimal places
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 171, in <dictcomp>
+    formatted_result = {key: f'{(value/args.n_samples_result_train):.4f}' for key, value in result.items()}  # Format values to 4 decimal places
+AttributeError: 'Namespace' object has no attribute 'n_samples_result_train'

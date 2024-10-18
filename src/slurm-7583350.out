@@ -1,0 +1,29 @@
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py:560: UserWarning: This DataLoader will create 16 worker processes in total. Our suggested max number of worker in current system is 8, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py:972: UserWarning: 'GATConv.jittable' is deprecated and a no-op. Please remove its usage.
+  warnings.warn(f"'{self.__class__.__name__}.jittable' is deprecated "
+  0%|          | 0/1 [00:00<?, ?it/s]  0%|          | 0/1 [00:45<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 212, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 165, in run
+    epoch_loss = train(model, train_loader, criterion, optimizer, args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 45, in train
+    y_pred = model(list(batch.edge_index_dict.values()), x)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 301, in forward
+    x_dict = gnn_layer(x_dict, edge_index_dict)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 275, in forward
+    out = conv((x_dict[self.node_type], x_dict[self.node_type]), edge_index)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/gat_conv.py", line 341, in forward
+    out = self.propagate(edge_index, x=x, alpha=alpha, size=size)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/message_passing.py", line 547, in propagate
+    out = self.message(**msg_kwargs)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/nn/conv/gat_conv.py", line 386, in message
+    return alpha.unsqueeze(-1) * x_j
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.86 GiB (GPU 0; 39.43 GiB total capacity; 34.90 GiB already allocated; 2.24 GiB free; 36.70 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

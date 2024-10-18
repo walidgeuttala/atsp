@@ -1,0 +1,48 @@
+Namespace(dataset='atsp', dataset_directory=PosixPath('../../tsp_input/generated_insatnces_3000_size_50'), tb_dir=PosixPath('../../checkpoint'), model='gnn', hidden_dim=128, num_layers=4, dropout=0.0, alpha=0.5, learn_alpha=False, conv_type='dir-gat', gat_model=False, normalize=True, jk=False, num_features=1, num_classes=1, target='regret', lr_init=0.0001, weight_decay=0.95, n_epochs=20, patience=10, num_runs=1, checkpoint_freq=5, min_delta=0.0001, batch_size=15, device='cuda', num_workers=4)
+device : cuda
+  0%|          | 0/20 [00:00<?, ?it/s]/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/storage.py:450: UserWarning: Unable to accurately infer 'num_nodes' from the attribute set '{'e'}'. Please explicitly set 'num_nodes' as an attribute of 'data[_N]' to suppress this warning
+  warnings.warn(
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/storage.py:450: UserWarning: Unable to accurately infer 'num_nodes' from the attribute set '{'e'}'. Please explicitly set 'num_nodes' as an attribute of 'data[_N]' to suppress this warning
+  warnings.warn(
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/storage.py:450: UserWarning: Unable to accurately infer 'num_nodes' from the attribute set '{'e'}'. Please explicitly set 'num_nodes' as an attribute of 'data[_N]' to suppress this warning
+  warnings.warn(
+/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/storage.py:450: UserWarning: Unable to accurately infer 'num_nodes' from the attribute set '{'e'}'. Please explicitly set 'num_nodes' as an attribute of 'data[_N]' to suppress this warning
+  warnings.warn(
+  0%|          | 0/20 [00:03<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 234, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 178, in run
+    epoch_loss = train(model, train_loader, criterion, optimizer, args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 41, in train
+    for  batch in data_loader:
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 633, in __next__
+    data = self._next_data()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1345, in _next_data
+    return self._process_data(data)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1371, in _process_data
+    data.reraise()
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/_utils.py", line 644, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 54, in fetch
+    return self.collate_fn(data)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/loader/dataloader.py", line 27, in __call__
+    return Batch.from_data_list(
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/batch.py", line 97, in from_data_list
+    batch, slice_dict, inc_dict = collate(
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/collate.py", line 109, in collate
+    value, slices, incs = _collate(attr, values, data_list, stores,
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/collate.py", line 169, in _collate
+    incs = get_incs(key, values, data_list, stores)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/collate.py", line 321, in get_incs
+    repeats = [
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/collate.py", line 322, in <listcomp>
+    data.__inc__(key, value, store)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/hetero_data.py", line 349, in __inc__
+    return torch.tensor(store.size()).view(2, 1)
+RuntimeError: Could not infer dtype of NoneType
+

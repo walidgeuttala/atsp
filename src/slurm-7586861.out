@@ -1,0 +1,11 @@
+Namespace(dataset='atsp', dataset_directory=PosixPath('../../tsp_input/generated_insatnces_3000_size_50'), tb_dir=PosixPath('../../checkpoint'), model='gnn', hidden_dim=128, num_layers=4, dropout=0.0, alpha=0.5, learn_alpha=False, conv_type='dir-gcn', gat_model=False, normalize=True, jk=False, num_features=1, num_classes=1, target='regret', lr_init=0.0001, weight_decay=0.95, n_epochs=20, patience=10, num_runs=1, checkpoint_freq=5, min_delta=0.0001, batch_size=15, device='cuda', num_workers=4)
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 234, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 151, in run
+    model = get_model(args).to(args.device)
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 310, in get_model
+    return GNN(
+  File "/project/p_gnn001/code/tsp/atsp/src/model.py", line 200, in __init__
+    output_dim = hidden_dim if jumping_knowledge else output_dim 
+UnboundLocalError: local variable 'output_dim' referenced before assignment

@@ -1,0 +1,15 @@
+Namespace(dataset='atsp', dataset_directory=PosixPath('../../tsp_input/generated_insatnces_3000_size_50'), tb_dir=PosixPath('../../checkpoint'), model='gnn', hidden_dim=128, num_layers=4, dropout=0.0, alpha=0.5, learn_alpha=False, conv_type='dir-gat', gat_model=False, normalize=True, jk=False, num_features=1, num_classes=1, target='regret', lr_init=0.0001, weight_decay=0.95, n_epochs=20, patience=10, num_runs=1, checkpoint_freq=5, min_delta=0.0001, batch_size=15, device='cuda', num_workers=4)
+device : cuda
+  0%|          | 0/20 [00:00<?, ?it/s]  0%|          | 0/20 [00:05<?, ?it/s]
+Traceback (most recent call last):
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 234, in <module>
+    run(args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 178, in run
+    epoch_loss = train(model, train_loader, criterion, optimizer, args)
+  File "/project/p_gnn001/code/tsp/atsp/src/train.py", line 46, in train
+    y_pred = model(list(batch.edge_index_dict.values()), x)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/data.py", line 559, in __getattr__
+    return getattr(self._store, key)
+  File "/home/p_gnngw/miniconda3/envs/directed_gnn/lib/python3.10/site-packages/torch_geometric/data/storage.py", line 96, in __getattr__
+    raise AttributeError(
+AttributeError: 'GlobalStorage' object has no attribute 'edge_index_dict'
