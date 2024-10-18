@@ -11,14 +11,14 @@
 #SBATCH --mail-type=ALL         # Email notification for job status changes
 #SBATCH --mail-user=abis28891@gmail.com  # Email address for notifications
 
-#python train.py --normalize --conv_type sage
+python train.py --normalize --conv_type dir-sage
 # python test.py --data_path ../../tsp_n5900/test2.txt --model_path ../../checkpoint/version0/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version0/run_results --output_path ../../checkpoint/version0/test_results --use_gpu --tsp
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type gcn
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version0/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version0/run_results --output_path ../../checkpoint/version0/test_results --use_gpu
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type sage
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version1/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version1/run_results --output_path ../../checkpoint/version1/test_results --use_gpu
 #python train.py --normalize --dataset_directory ../../atsp_n5900/ 
-python test.py --data_path ../../atsp_n5900/test3.txt --model_path ../../checkpoint/version40/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version40/run_results --output_path ../../checkpoint/version40/test_results --use_gpu
+# python test.py --data_path ../../atsp_n5900/test3.txt --model_path ../../checkpoint/version40/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version40/run_results --output_path ../../checkpoint/version40/test_results --use_gpu
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type gat
 # python test.py --data_path ../../atsp_n5900/test2.txt --model_path ../../checkpoint/version3/checkpoint_best_val.pt --guides regret_pred --run_dir  ../../checkpoint/version3/run_results --output_path ../../checkpoint/version3/test_results --use_gpu
 # python train.py --normalize --dataset_directory ../../atsp_n5900/ --conv_type dir-sage

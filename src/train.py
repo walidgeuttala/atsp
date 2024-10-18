@@ -114,7 +114,7 @@ def train_parse_args():
 
     ### System Args
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument("--num_workers", type=int, help="Num of workers for the dataloader", default=16)
+    parser.add_argument("--num_workers", type=int, help="Num of workers for the dataloader", default=8)
 
     args = parser.parse_args()
 
@@ -124,6 +124,16 @@ def loss2(y, args):
     num_edges = int(y.shape[0]//args.batch_size ** 0.5)
     y = y.view(args.batch_size, num_edges, num_edges)
 
+def load_checkpoint(model, optimizer, filepath):
+    """Load model and optimizer state from a checkpoint file."""
+    checkpoint = torch.load(filepath)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    train_loss = checkpoint['loss']
+    val_loss = checkpoint['val_loss']
+    
+    return epoch, train_loss, val_loss
 
 def run(args):
     torch.manual_seed(0)
@@ -133,8 +143,8 @@ def run(args):
         train_data = dataset.TSPDataset(f"{args.dataset_directory}/train.txt")
         val_data = dataset.TSPDataset(f"{args.dataset_directory}/val.txt")
         
-        train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False)
-        val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False)
+        train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True)
+        val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True)
         
         model = get_model(args).to(args.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init)
@@ -167,7 +177,12 @@ def run(args):
 
             epoch_val_loss = test(model, val_loader, criterion, args)
             writer.add_scalar("Loss/validation", epoch_val_loss, epoch)
-
+            result = utils.atsp_results(model, args, val_data)
+            formatted_result = {key: f'{(value/30):.4f}' for key, value in result.items()}  # Format values to 4 decimal places
+            formatted_result['train_loss'] = f"{epoch_loss:.4f}"
+            formatted_result['val_loss'] = f"{epoch_val_loss:.4f}"
+            formatted_result['epoch'] = f'{epoch:.4f}'
+            pbar.set_postfix(**formatted_result)
             with open(args.dataset_directory / val_data.instances[0], 'rb') as file:
                 G = pickle.load(file)
             H = val_data.get_scaled_features(G).to(args.device)
@@ -181,13 +196,13 @@ def run(args):
             opt_cost = utils.optimal_cost(G, weight='weight')
             init_tour = algorithms.nearest_neighbor(G, 0, weight='regret_pred')
             init_cost = utils.tour_cost(G, init_tour)
-            pbar.set_postfix({
-                'Train Loss': '{:.4f}'.format(epoch_loss),
-                'Validation Loss': '{:.4f}'.format(epoch_val_loss),
-                "correlation : ": '{:.4f}'.format(utils.correlation_matrix(y_pred.cpu(),H.y.cpu())),
-                "cosin correlation : ": '{:.4f}'.format(utils.cosine_similarity(y_pred.cpu().flatten(),H.y.cpu().flatten())),
-                "gap : ": '{:.4f}'.format((init_cost / opt_cost - 1) * 100),
-            })
+            # pbar.set_postfix({
+            #     'Train Loss': '{:.4f}'.format(epoch_loss),
+            #     'Validation Loss': '{:.4f}'.format(epoch_val_loss),
+            #     "correlation : ": '{:.4f}'.format(utils.correlation_matrix(y_pred.cpu(),H.y.cpu())),
+            #     "cosin correlation : ": '{:.4f}'.format(utils.cosine_similarity(y_pred.cpu().flatten(),H.y.cpu().flatten())),
+            #     "gap : ": '{:.4f}'.format((init_cost / opt_cost - 1) * 100),
+            # })
             
             if args.checkpoint_freq is not None and epoch > 0 and epoch % args.checkpoint_freq == 0:
                 checkpoint_name = f'checkpoint_{epoch}.pt'
@@ -216,6 +231,17 @@ def run(args):
 
         save(model, optimizer, epoch, epoch_loss, epoch_val_loss, log_dir / 'checkpoint_final.pt')
 
+        traced_model = torch.jit.trace(model, (list(H.edge_index_dict.values()), x))
+        model_scripted = torch.jit.script(traced_model)
+        model_scripted.save('modelv1.pt')
+        epoch, train_loss, val_loss = load_checkpoint(model, optimizer, log_dir / 'checkpoint_best_val.pt')
+        result = utils.atsp_results(model, args, val_data)
+        formatted_result = {key: f'{(value/30):.4f}' for key, value in result.items()}  # Format values to 4 decimal places
+        formatted_result['train_loss'] = f"{epoch_loss:.4f}"
+        formatted_result['val_loss'] = f"{epoch_val_loss:.4f}"
+        formatted_result['epoch'] = f'{epoch:.4f}'
+        print('best epoch results')
+        print(formatted_result)
 
 if __name__ == '__main__':
     args = train_parse_args()
