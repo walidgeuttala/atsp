@@ -84,7 +84,7 @@ def train_parse_args():
 
     ### Dataset Args
     parser.add_argument("--dataset", type=str, help="Name of dataset", default="atsp")
-    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../tsp_n5900")
+    parser.add_argument("--dataset_directory", type=pathlib.Path, help="Directory to save datasets", default="../../tsp_input/generated_insatnces_3000_size_50")
     parser.add_argument("--tb_dir", type=pathlib.Path, help="Directory to save checkpoints", default="../../checkpoint")
 
     ### Model Args

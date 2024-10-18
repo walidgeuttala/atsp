@@ -77,7 +77,7 @@ class TSPDataset(torch.utils.data.Dataset):
             G = pickle.load(file)
         lG = nx.line_graph(G)
         self.G = from_networkx(lG)
-        self.G.edge_index = add_remaining_self_loops(self.G.edge_index)[0]
+        #self.G.edge_index = add_remaining_self_loops(self.G.edge_index)[0]
         self.mapping = dict(zip(range(lG.number_of_nodes()), lG.nodes()))
 
 
