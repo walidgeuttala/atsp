@@ -25,7 +25,7 @@ def get_conv(conv_type, input_dim, output_dim, alpha):
     elif conv_type == "sage":
         return SAGEConv(input_dim, output_dim)
     elif conv_type == "gat":
-        return GATConv(input_dim, output_dim, heads=1)
+        return GATConv(input_dim, output_dim, heads=64)
     elif conv_type == "gen":
         return GENConv(input_dim, output_dim, aggr='powermean', t=1.0, learn_t=True, num_layers=2, norm='layer') 
     elif conv_type == "dir-gcn":

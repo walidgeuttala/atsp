@@ -1,0 +1,29 @@
+/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_geometric/typing.py:68: UserWarning: An issue occurred while importing 'pyg-lib'. Disabling its usage. Stacktrace: /lib64/libm.so.6: version `GLIBC_2.29' not found (required by /project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/libpyg.so)
+  warnings.warn(f"An issue occurred while importing 'pyg-lib'. "
+/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_geometric/typing.py:124: UserWarning: An issue occurred while importing 'torch-sparse'. Disabling its usage. Stacktrace: /lib64/libm.so.6: version `GLIBC_2.29' not found (required by /project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/libpyg.so)
+  warnings.warn(f"An issue occurred while importing 'torch-sparse'. "
+Traceback (most recent call last):
+  File "/project/c_gnn_001/code/tsp/atsp/src/train.py", line 18, in <module>
+    from model import get_model
+  File "/project/c_gnn_001/code/tsp/atsp/src/model.py", line 3, in <module>
+    from torch_sparse import SparseTensor
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_sparse/__init__.py", line 39, in <module>
+    from .storage import SparseStorage  # noqa
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_sparse/storage.py", line 7, in <module>
+    from torch_sparse.utils import Final, index_sort
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_sparse/utils.py", line 5, in <module>
+    import torch_sparse.typing
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_sparse/typing.py", line 2, in <module>
+    import pyg_lib  # noqa
+    ^^^^^^^^^^^^^^
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/pyg_lib/__init__.py", line 34, in <module>
+    load_library('libpyg')
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/pyg_lib/__init__.py", line 31, in load_library
+    torch.ops.load_library(spec.origin)
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch/_ops.py", line 1295, in load_library
+    ctypes.CDLL(path)
+  File "/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/ctypes/__init__.py", line 376, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: /lib64/libm.so.6: version `GLIBC_2.29' not found (required by /project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/libpyg.so)

@@ -1,0 +1,5 @@
+/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_geometric/typing.py:68: UserWarning: An issue occurred while importing 'pyg-lib'. Disabling its usage. Stacktrace: /lib64/libm.so.6: version `GLIBC_2.29' not found (required by /project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/libpyg.so)
+  warnings.warn(f"An issue occurred while importing 'pyg-lib'. "
+/project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/torch_geometric/typing.py:124: UserWarning: An issue occurred while importing 'torch-sparse'. Disabling its usage. Stacktrace: /lib64/libm.so.6: version `GLIBC_2.29' not found (required by /project/c_gnn_001/conda_envs/cuda121/lib/python3.11/site-packages/libpyg.so)
+  warnings.warn(f"An issue occurred while importing 'torch-sparse'. "
+slurmstepd: error: *** JOB 7929183 ON x1001c1s2b0n1 CANCELLED AT 2024-10-24T21:49:45 ***
